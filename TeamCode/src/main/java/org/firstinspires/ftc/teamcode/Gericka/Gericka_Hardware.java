@@ -40,8 +40,10 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.robotcore.internal.files.DataLogger;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 import java.io.IOException;
 import java.util.List;
@@ -1206,31 +1208,90 @@ public class Gericka_Hardware {
     // *************************************************************************
 
    public void WebcamInit (HardwareMap hardwareMap){
-       aprilTag = new AprilTagProcessor.Builder().build();
+       // Create the AprilTag processor.
+       aprilTag = new AprilTagProcessor.Builder()
 
+               // The following default settings are available to un-comment and edit as needed.
+               //.setDrawAxes(true) // Changed in V12.0
+               //.setDrawTagOutline(true)
+               //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+               //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+               //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+               //.setDrawCubeProjection(false)
+
+               // == CAMERA CALIBRATION ==
+               // If you do not manually specify calibration parameters, the SDK will attempt
+               // to load a predefined calibration for your camera.
+               //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
+               // ... these parameters are fx, fy, cx, cy.
+
+               .build();
+
+       // Adjust Image Decimation to trade-off detection-range for detection-rate.
+       // eg: Some typical detection data using a Logitech C920 WebCam
+       // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
+       // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
+       // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
+       // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
+       // Note: Decimation can be changed on-the-fly to adapt during a match.
+       //aprilTag.setDecimation(3);
+
+       // Create the vision portal by using a builder.
        VisionPortal.Builder builder = new VisionPortal.Builder();
+
        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+
+       // Choose a camera resolution. Not all cameras support all resolutions.
+       //builder.setCameraResolution(new Size(640, 480));
+
+       // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
+       //builder.enableLiveView(true);
+
+       // Set the stream format; MJPEG uses less bandwidth than default YUY2.
+       //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+
+       // Choose whether or not LiveView stops if no processors are enabled.
+       // If set "true", monitor shows solid orange screen if no processors enabled.
+       // If set "false", monitor shows camera view without annotations.
+       //builder.setAutoStopLiveView(false);
+
+       // Set and enable the processor.
        builder.addProcessor(aprilTag);
 
+       // Build the Vision Portal, using the above settings.
        visionPortal = builder.build();
-    }
+
+       // Disable or re-enable the aprilTag processor at any time.
+       //visionPortal.setProcessorEnabled(aprilTag, true);
+
+   }
     private void telemetryAprilTag() {
         List<AprilTagDetection> detections = aprilTag.getDetections();
         opMode.telemetry.addData("Webcam Tags Detected", detections.size());
-/*
+
         for (AprilTagDetection detection : detections) {
-            if (detection.metadata != null) {
-                opMode.telemetry.addLine(String.format("Webcam Tag ID %d (%s)", detection.id, detection.metadata.name));
-                opMode.telemetry.addData("Range", "%.1f in", detection.ftcPose.range);
-                opMode.telemetry.addData("Bearing", "%.1f°", detection.ftcPose.bearing);
-                opMode.telemetry.addData("Elevation", "%.1f°", detection.ftcPose.elevation);
-                opMode.telemetry.addData("X", "%.1f°", detection.robotPose.getPosition().x);
-                opMode.telemetry.addData("Y", "%.1f°", detection.robotPose.getPosition().y);
+            if (detection instanceof AprilTagSingleDetection) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                if (singleDet.metadata != null) {
+                    opMode.telemetry.addLine(String.format("\n==== (ID %d) %s", singleDet.id, singleDet.metadata.name));
+                    opMode.telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
+                    opMode.telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                    opMode.telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                } else {
+                    opMode.telemetry.addLine(String.format("\n==== (ID %d) Unknown", singleDet.id));
+                    opMode.telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", singleDet.center.x, singleDet.center.y));
+                }
             } else {
-                opMode.telemetry.addLine(String.format("Webcam Tag ID %d (Unknown)", detection.id));
+                AprilTagClusterDetection clusterDet = (AprilTagClusterDetection) detection;
+                opMode.telemetry.addLine(String.format("\n==== Tag Cluster (%s)", clusterDet.metadata.name));
+                opMode.telemetry.addLine(String.format("Percent tags found: %d", clusterDet.percentClusterFound));
+                opMode.telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
+                opMode.telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                opMode.telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
             }
         }
-        */
+
     }
     public void updateObeliskFromCamera(){
         if(detectedObeliskId == -1){
@@ -1292,10 +1353,12 @@ public class Gericka_Hardware {
         List<AprilTagDetection> detections = aprilTag.getDetections();
         boolean foundit = false;
         double bearing = 0.0;
-        /*
+
         for (AprilTagDetection detection : detections){
-            if (detection.metadata != null) {
-                if(detection.id == detectionID){
+            if (detection instanceof AprilTagSingleDetection) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                if(singleDet.id == detectionID){
                     bearing = detection.ftcPose.bearing;
                     foundit = true;
                     break;
@@ -1303,55 +1366,71 @@ public class Gericka_Hardware {
             }
         }
 
-         */
         return bearing;
     }
 
     double getBearingToObeliskTag(int detectionID){
-        /*
+
         for (AprilTagDetection detection : aprilTag.getDetections()) {
-            if (detection.id == detectionID) return detection.ftcPose.bearing;
+            if (detection instanceof AprilTagSingleDetection) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                if (singleDet.id == detectionID) {
+                    return detection.ftcPose.bearing;
+                }
+            }
         }
 
-         */
+
         return 0.0;
     }
 
     double getDistanceToObeliskTag(int detectionID){
-        /*
+
         for (AprilTagDetection detection : aprilTag.getDetections()) {
-            if (detection.id == detectionID) return detection.ftcPose.range;
+            if (detection instanceof AprilTagSingleDetection) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                if (singleDet.id == detectionID) {
+                    return detection.ftcPose.range;
+                }
+            }
         }
 
-         */
         return 0.0;
     }
 
     boolean getAprilTagVisible(int detectionID){
         List<AprilTagDetection> detections = aprilTag.getDetections();
         boolean foundit = false;
-        /*
-        for (AprilTagDetection detection : detections){
-            if (detection.metadata != null){
-                foundit = (detection.id == detectionID);
-                break; // this will break after first item with metadata(DO NOT USE FOR OBELISK)
+
+        for (AprilTagDetection detection : aprilTag.getDetections()) {
+            if (detection instanceof AprilTagSingleDetection) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                if (singleDet.id == detectionID) {
+                    foundit = true;
+                    break; // this will break after first item with metadata(DO NOT USE FOR OBELISK)
+                }
             }
         }
 
-         */
         return foundit;
     }
 
     boolean getObeliskTagVisible(int detectionID){
         List<AprilTagDetection> detections = aprilTag.getDetections();
-        /*
-        for(AprilTagDetection detection : detections){
-            if(detection.id == detectionID){
-                return true;
+
+        for (AprilTagDetection detection : aprilTag.getDetections()) {
+            if (detection instanceof AprilTagSingleDetection) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                if (singleDet.id == detectionID) {
+                   return true;
+                }
             }
         }
 
-         */
         return false;
     }
 
@@ -1359,17 +1438,19 @@ public class Gericka_Hardware {
         List<AprilTagDetection> detections = aprilTag.getDetections();
         boolean foundit = false;
         double distance = 0.0;
-        /*
-        for (AprilTagDetection detection : detections){
-            if (detection.metadata != null) {
-                if (detection.id == detectionID) {
+
+        for (AprilTagDetection detection : aprilTag.getDetections()) {
+            if (detection instanceof AprilTagSingleDetection) {
+                AprilTagSingleDetection singleDet = (AprilTagSingleDetection) detection;
+
+                if (singleDet.id == detectionID) {
                     distance = detection.ftcPose.range;
-                    break;
+                    break; // this will break after first item with metadata(DO NOT USE FOR OBELISK)
                 }
             }
         }
 
-         */
+
         return distance;
     }
 
