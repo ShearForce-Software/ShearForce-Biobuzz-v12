@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.summerPedro.AutoOps;
+package org.firstinspires.ftc.teamcode.summerPedro.Auto;
 
 import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.Scheduler.schedule;
@@ -16,7 +16,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.summerPedro.pedro.Constants;
 
-@Autonomous
+@Autonomous(name = "summerPedro Example", group = "summerPedro")
 public class PedroExampleAuto extends OpMode {
     private Follower follower;
     private final PoseFactory poseFactory = PoseFactory.degrees();
