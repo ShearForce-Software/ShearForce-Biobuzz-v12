@@ -1,62 +1,111 @@
 package org.firstinspires.ftc.teamcode.summerPedro.Tests;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
 
 /*
-This is an OpMode demonstrating both live PIDF updating and live graphing using TelemetryPacket
+OpMode for live PIDF tuning and graph plotting of the dual flywheel shooter system via FTC Dashboard.
 
-How to View the Graph in the Browser
-1. Connect your laptop to the robot's Wi-Fi network.
-2. Open Dashboard: Navigate to http://192.168.43.1:8080/dash in Chrome
-3. Open Graph Panel:
-	• In the top-right menu, ensure the Graph view / checkbox is enabled.
-4. Select Plot Traces:
-	• Under the graph pane, you will see a list of plotted keys
-	  (Target Velocity, Left Velocity, Right Velocity, Average Velocity).
+Target Hardware:
+- Motors: goBilda 5203 Series 1:1 Yellow Jacket (6000 RPM max, 28 CPR)
+- Initial Target: 1750 RPM = 816.7 ticks/sec
 
-	• Check each box to overlay them onto the same real-time graph.
-5. Adjust Parameters:
-	• Open the ShooterConfig dropdown on the dashboard panel.
-	• Edit P, I, D, F, or TARGET_VELOCITY_TICKS.
-	• Watch the step response in real time to check for overshoot, oscillation, or steady-state error.
+FTC Dashboard Instructions:
+1. Connect laptop to Robot Wi-Fi.
+2. Open Browser: http://192.168.43.1:8080/dash
+3. Open Graph Panel and enable:
+   - Target Velocity
+   - Left Velocity
+   - Right Velocity
+   - Average Velocity
+4. Edit PIDF values in 'summerPedro -> ShooterConfig':
+   a. F = 11.7 (Feedforward initialized for 1:1 motor)
+   b. Increase P until speed reaches target quickly without excessive overshoot.
+   c. Increase D to dampen overshoot / oscillations.
+   d. Add small I if steady-state error remains under load.
+5. Driver Controls (Gamepad 1):
+   - Cross / Right Trigger: Actuate pusher servo to feed ball and observe speed recovery.
+   - Circle: Toggle flywheels ON / OFF.
+   - D-Pad Up: Increment target velocity (+50 ticks/sec).
+   - D-Pad Down: Decrement target velocity (-50 ticks/sec).
  */
 @TeleOp(name = "Shooter PIDF Tuner", group = "Tuning")
 public class ShooterTuningOpMode extends LinearOpMode {
+
+    private static final double VELOCITY_STEP_TICKS = 50.0; // ~107 RPM step change
+
+    private boolean lastCircleState = false;
+    private boolean lastDpadUpState = false;
+    private boolean lastDpadDownState = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
         // Wrap Driver Station telemetry and FTC Dashboard telemetry together
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        // 1. Initialize Dashboard and Subsystem
-        FtcDashboard dashboard = FtcDashboard.getInstance();
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
 
-        telemetry.addLine("Ready to start. Open http://192.168.43.1:8080/dash");
+        telemetry.addLine("=== Shooter PIDF Tuner ===");
+        telemetry.addLine("Open http://192.168.43.1:8080/dash");
+        telemetry.addLine("Edit values in summerPedro -> ShooterConfig");
+        telemetry.addLine("Cross / Right Trigger: Feed ball");
+        telemetry.addLine("Circle: Toggle flywheels on/off");
+        telemetry.addLine("D-Pad Up/Down: Increase/Decrease target velocity");
         telemetry.update();
 
         waitForStart();
 
-        // Spin up flywheels to target speed
+        // Start flywheels initially
         shooter.startFlywheels();
 
         while (opModeIsActive()) {
-            // Check for on-the-fly PIDF/target changes from dashboard
+            // Re-apply PIDF gains and target velocity if modified live on FTC Dashboard
             shooter.update();
 
-            // Broadcast numerical values to BOTH Driver Station and the Dashboard graph
-            telemetry.addData("Target Velocity", ShooterConfig.TARGET_VELOCITY_TICKS);
+            // Feed ball control: Cross button or Right Trigger
+            if (gamepad1.cross || gamepad1.right_trigger > 0.1) {
+                shooter.firePosition();
+            } else {
+                shooter.restPosition();
+            }
+
+            // Circle button toggles flywheels on/off
+            boolean currentCircleState = gamepad1.circle;
+            if (currentCircleState && !lastCircleState) {
+                if (shooter.isRunning()) {
+                    shooter.stopFlywheels();
+                } else {
+                    shooter.startFlywheels();
+                }
+            }
+            lastCircleState = currentCircleState;
+
+            // D-Pad Up / Down adjusts target velocity in increments
+            boolean currentDpadUpState = gamepad1.dpad_up;
+            if (currentDpadUpState && !lastDpadUpState) {
+                double newVel = shooter.getTargetVelocity() + VELOCITY_STEP_TICKS;
+                shooter.setVelocity(newVel);
+            }
+            lastDpadUpState = currentDpadUpState;
+
+            boolean currentDpadDownState = gamepad1.dpad_down;
+            if (currentDpadDownState && !lastDpadDownState) {
+                double newVel = Math.max(0.0, shooter.getTargetVelocity() - VELOCITY_STEP_TICKS);
+                shooter.setVelocity(newVel);
+            }
+            lastDpadDownState = currentDpadDownState;
+
+            // Broadcast telemetry to Driver Station and Dashboard Graph
+            telemetry.addData("Target Velocity", shooter.getTargetVelocity());
             telemetry.addData("Left Velocity", shooter.getLeftVelocity());
             telemetry.addData("Right Velocity", shooter.getRightVelocity());
             telemetry.addData("Average Velocity", shooter.getAverageVelocity());
             telemetry.addData("At Speed", shooter.isAtSpeed());
+            telemetry.addData("Flywheels Running", shooter.isRunning());
 
             telemetry.update();
         }

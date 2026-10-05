@@ -119,7 +119,7 @@ public class PedroExampleTeleOp extends OpMode {
 
         // Diagnostics
         telemetry.addData("Currently Holding Point", isHolding);
-        telemetry.addData("Shooter Velocity", "%.1f / %.1f", shooter.getAverageVelocity(), ShooterSubsystem.TARGET_VELOCITY_TICKS);
+        telemetry.addData("Shooter Velocity", "%.1f / %.1f", shooter.getAverageVelocity(), shooter.getTargetVelocity());
         telemetry.addData("Shooter Ready", shooter.isAtSpeed());
         telemetry.addData("Pose", follower.pose().toString());
         telemetry.update();
