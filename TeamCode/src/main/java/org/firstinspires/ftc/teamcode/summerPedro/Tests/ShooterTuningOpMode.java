@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
 
+import java.util.Locale;
+
 /*
 OpMode for live PIDF tuning and graph plotting of the dual flywheel shooter system via FTC Dashboard.
 
@@ -99,13 +101,27 @@ public class ShooterTuningOpMode extends LinearOpMode {
             }
             lastDpadDownState = currentDpadDownState;
 
+            // Format "At Speed" message with last time to speed / recovery duration
+            StringBuilder atSpeedMsg = new StringBuilder(shooter.isAtSpeed() ? "TRUE" : "FALSE");
+            if (shooter.getLastTimeToSpeed() >= 0) {
+                atSpeedMsg.append(String.format(Locale.US, " (last time to speed: %.3f s )",
+                        shooter.getLastTimeToSpeed()));
+            }
+
+            // Format "Flywheels Running" message with last 0-to-speed startup duration
+            StringBuilder flywheelsMsg = new StringBuilder(shooter.isRunning() ? "RUNNING" : "STOPPED");
+            if (shooter.getLastStartupTime() >= 0) {
+                flywheelsMsg.append(String.format(Locale.US, " (last startup time: %.3f s )",
+                        shooter.getLastStartupTime()));
+            }
+
             // Broadcast telemetry to Driver Station and Dashboard Graph
             telemetry.addData("Target Velocity", shooter.getTargetVelocity());
             telemetry.addData("Left Velocity", shooter.getLeftVelocity());
             telemetry.addData("Right Velocity", shooter.getRightVelocity());
             telemetry.addData("Average Velocity", shooter.getAverageVelocity());
-            telemetry.addData("At Speed", shooter.isAtSpeed());
-            telemetry.addData("Flywheels Running", shooter.isRunning());
+            telemetry.addData("At Speed", atSpeedMsg.toString());
+            telemetry.addData("Flywheels Running", flywheelsMsg.toString());
 
             telemetry.update();
         }

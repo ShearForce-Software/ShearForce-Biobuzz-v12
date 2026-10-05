@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class ShooterSubsystem {
     private final DcMotorEx shooterLeft;
@@ -28,6 +29,14 @@ public class ShooterSubsystem {
     private double lastF;
     private double lastTargetVelocity;
     private boolean isRunning = false;
+
+    // Timing tracking for speed recovery and 0-to-speed startup
+    private final ElapsedTime speedTimer = new ElapsedTime();
+    private final ElapsedTime startupTimer = new ElapsedTime();
+    private boolean wasAtSpeed = false;
+    private boolean isStartingUp = false;
+    private double lastTimeToSpeed = -1.0; // In seconds (-1 if no measurement yet)
+    private double lastStartupTime = -1.0;  // In seconds (-1 if no measurement yet)
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
         shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
@@ -60,6 +69,7 @@ public class ShooterSubsystem {
     /**
      * Call this inside your OpMode's main loop.
      * Checks if FTC Dashboard has modified any PIDF gains or target velocity and updates the motors on the fly.
+     * Also tracks time to reach speed and startup time.
      */
     public void update() {
         if (lastP != ShooterConfig.P ||
@@ -81,15 +91,40 @@ public class ShooterSubsystem {
         if (lastTargetVelocity != ShooterConfig.TARGET_VELOCITY_TICKS) {
             lastTargetVelocity = ShooterConfig.TARGET_VELOCITY_TICKS;
             if (isRunning) {
+                speedTimer.reset();
                 shooterLeft.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
                 shooterRight.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
             }
         }
+
+        // Timing logic: track time to reach target speed and startup time from 0 velocity
+        boolean currentlyAtSpeed = isAtSpeed();
+
+        if (!wasAtSpeed && currentlyAtSpeed) {
+            // Just reached target speed!
+            lastTimeToSpeed = speedTimer.seconds();
+
+            if (isStartingUp) {
+                lastStartupTime = startupTimer.seconds();
+                isStartingUp = false;
+            }
+        } else if (wasAtSpeed && !currentlyAtSpeed) {
+            // Dropped below target speed threshold; reset timer to measure recovery duration
+            speedTimer.reset();
+        }
+
+        wasAtSpeed = currentlyAtSpeed;
     }
 
     // --- Hardware Control Methods ---
 
     public void startFlywheels() {
+        if (!isRunning) {
+            isStartingUp = true;
+            startupTimer.reset();
+            speedTimer.reset();
+            wasAtSpeed = false;
+        }
         isRunning = true;
         shooterLeft.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
         shooterRight.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
@@ -98,6 +133,17 @@ public class ShooterSubsystem {
     public void setVelocity(double ticksPerSec) {
         ShooterConfig.TARGET_VELOCITY_TICKS = ticksPerSec;
         lastTargetVelocity = ticksPerSec;
+
+        if (ticksPerSec > 0 && !isRunning) {
+            isStartingUp = true;
+            startupTimer.reset();
+            speedTimer.reset();
+            wasAtSpeed = false;
+        } else if (ticksPerSec > 0) {
+            speedTimer.reset();
+            wasAtSpeed = false;
+        }
+
         isRunning = ticksPerSec != 0;
         shooterLeft.setVelocity(ticksPerSec);
         shooterRight.setVelocity(ticksPerSec);
@@ -105,6 +151,8 @@ public class ShooterSubsystem {
 
     public void stopFlywheels() {
         isRunning = false;
+        isStartingUp = false;
+        wasAtSpeed = false;
         shooterLeft.setVelocity(0);
         shooterRight.setVelocity(0);
     }
@@ -140,6 +188,14 @@ public class ShooterSubsystem {
 
     public double getRightVelocity() {
         return shooterRight.getVelocity();
+    }
+
+    public double getLastTimeToSpeed() {
+        return lastTimeToSpeed;
+    }
+
+    public double getLastStartupTime() {
+        return lastStartupTime;
     }
 
     // --- Ivy Command Generators ---
