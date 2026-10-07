@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.summerPedro.pedro;
 
+import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.pedropathing.tuning.autotune.Procedure;
@@ -22,12 +23,19 @@ public class Tuning {
         return new PinpointTuner();
     }
 
-    @Tuner
+    /*@Tuner
     public static Procedure summerPedro_tests() {
 
         return new Tests(hardwareMap -> new Mecanum(hardwareMap, Constants.drivetrainConfig),
                 (hardwareMap -> new PinpointLocalizer(hardwareMap,
                         Constants.localizerConfig)), null);
+    }*/
+
+    @Tuner
+    public static Procedure tests() {
+        return new Tests(hardwareMap -> new Mecanum(hardwareMap, Constants.drivetrainConfig),
+                (hardwareMap -> new PinpointLocalizer(hardwareMap, Constants.localizerConfig)),
+                () -> new Foresight(Constants.foresightConfig));
     }
 
     @Tuner
