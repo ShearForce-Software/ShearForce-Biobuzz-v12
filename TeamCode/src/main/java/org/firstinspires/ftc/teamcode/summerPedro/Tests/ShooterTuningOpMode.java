@@ -68,6 +68,9 @@ public class ShooterTuningOpMode extends LinearOpMode {
 
         waitForStart();
 
+        // Force the dashboard to push its current web-client values into your code's memory registers
+        FtcDashboard.getInstance().updateConfig();
+
         // Start flywheels initially
         shooter.startFlywheels();
 

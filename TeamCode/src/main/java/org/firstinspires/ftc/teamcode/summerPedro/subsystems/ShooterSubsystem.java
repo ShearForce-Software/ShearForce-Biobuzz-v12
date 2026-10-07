@@ -21,6 +21,8 @@ public class ShooterSubsystem {
 
     private static final double SHOOTER_SERVO_REST = 0.0;
     private static final double SHOOTER_SERVO_SHOOT = 1.0;
+    // 1750 RPM = 816.7 ticks/sec for goBilda 1:1 Yellow Jacket motors (28 CPR)
+    public double target_velocity_ticks = 816.7;
 
     // Cache active PIDF & Target values to detect Dashboard changes
     private double lastP;
@@ -52,7 +54,7 @@ public class ShooterSubsystem {
         lastI = ShooterConfig.I;
         lastD = ShooterConfig.D;
         lastF = ShooterConfig.F;
-        lastTargetVelocity = ShooterConfig.TARGET_VELOCITY_TICKS;
+        lastTargetVelocity = target_velocity_ticks;
 
         PIDFCoefficients initialPidf = new PIDFCoefficients(lastP, lastI, lastD, lastF);
 
@@ -77,6 +79,10 @@ public class ShooterSubsystem {
                 lastD != ShooterConfig.D ||
                 lastF != ShooterConfig.F) {
 
+            // 🔍 This will print to Android Studio's Logcat panel instantly when a packet lands
+            android.util.Log.d("SHOOTER_DEBUG", "Dashboard Packet Received! New P: " + ShooterConfig.P + ", New F: " + ShooterConfig.F);
+
+
             lastP = ShooterConfig.P;
             lastI = ShooterConfig.I;
             lastD = ShooterConfig.D;
@@ -89,17 +95,17 @@ public class ShooterSubsystem {
 
             // Re-apply velocity so the REV Hub active velocity controller uses the updated PIDF gains
             if (isRunning) {
-                shooterLeft.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
-                shooterRight.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
+                shooterLeft.setVelocity(target_velocity_ticks);
+                shooterRight.setVelocity(target_velocity_ticks);
             }
         }
 
-        if (lastTargetVelocity != ShooterConfig.TARGET_VELOCITY_TICKS) {
-            lastTargetVelocity = ShooterConfig.TARGET_VELOCITY_TICKS;
+        if (lastTargetVelocity != target_velocity_ticks) {
+            lastTargetVelocity = target_velocity_ticks;
             if (isRunning) {
                 speedTimer.reset();
-                shooterLeft.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
-                shooterRight.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
+                shooterLeft.setVelocity(target_velocity_ticks);
+                shooterRight.setVelocity(target_velocity_ticks);
             }
         }
 
@@ -132,12 +138,12 @@ public class ShooterSubsystem {
             wasAtSpeed = false;
         }
         isRunning = true;
-        shooterLeft.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
-        shooterRight.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
+        shooterLeft.setVelocity(target_velocity_ticks);
+        shooterRight.setVelocity(target_velocity_ticks);
     }
 
     public void setVelocity(double ticksPerSec) {
-        ShooterConfig.TARGET_VELOCITY_TICKS = ticksPerSec;
+        target_velocity_ticks = ticksPerSec;
         lastTargetVelocity = ticksPerSec;
 
         if (ticksPerSec > 0 && !isRunning) {
@@ -168,8 +174,8 @@ public class ShooterSubsystem {
     }
 
     public boolean isAtSpeed() {
-        return Math.abs(shooterLeft.getVelocity() - ShooterConfig.TARGET_VELOCITY_TICKS) < ShooterConfig.VELOCITY_TOLERANCE &&
-                Math.abs(shooterRight.getVelocity() - ShooterConfig.TARGET_VELOCITY_TICKS) < ShooterConfig.VELOCITY_TOLERANCE;
+        return Math.abs(shooterLeft.getVelocity() - target_velocity_ticks) < ShooterConfig.VELOCITY_TOLERANCE &&
+                Math.abs(shooterRight.getVelocity() - target_velocity_ticks) < ShooterConfig.VELOCITY_TOLERANCE;
     }
 
     public void firePosition() {
@@ -181,7 +187,7 @@ public class ShooterSubsystem {
     }
 
     public double getTargetVelocity() {
-        return ShooterConfig.TARGET_VELOCITY_TICKS;
+        return target_velocity_ticks;
     }
 
     public double getAverageVelocity() {

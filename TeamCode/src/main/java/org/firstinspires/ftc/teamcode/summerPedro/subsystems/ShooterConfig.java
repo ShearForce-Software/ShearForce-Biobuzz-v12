@@ -20,8 +20,9 @@ public class ShooterConfig {
     public static double I = 0.0;
     public static double D = 0.0;
     public static double F = 11.7;
-
-    // 1750 RPM = 816.7 ticks/sec for goBilda 1:1 Yellow Jacket motors (28 CPR)
-    public static double TARGET_VELOCITY_TICKS = 816.7;
     public static double VELOCITY_TOLERANCE = 25.0; // ~53 RPM tolerance
+
+    // Private constructor prevents instantiation
+    private ShooterConfig() {}
+
 }

@@ -29,3 +29,19 @@ allprojects {
 repositories {
     mavenCentral()
 }
+
+tasks.register('connectToHub', Exec) {
+    group = 'verification'
+    description = 'Connects ADB to the REV Control Hub via Wi-Fi.'
+    ignoreExitValue = true
+
+    if (System.getProperty('os.name').toLowerCase().contains('windows')) {
+        // Dynamically grabs your Windows home directory (e.g., C:\Users\YourName)
+        def userHome = System.getProperty("user.home")
+        def adbPath = "${userHome}\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe"
+
+        commandLine 'cmd', '/c', "${adbPath} connect 192.168.43.1:5555"
+    } else {
+        commandLine 'adb', 'connect', '192.168.43.1:5555'
+    }
+}
