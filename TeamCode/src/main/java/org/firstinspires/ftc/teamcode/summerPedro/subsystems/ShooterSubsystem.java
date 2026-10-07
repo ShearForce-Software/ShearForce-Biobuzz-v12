@@ -86,6 +86,12 @@ public class ShooterSubsystem {
 
             shooterLeft.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, updatedPidf);
             shooterRight.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, updatedPidf);
+
+            // Re-apply velocity so the REV Hub active velocity controller uses the updated PIDF gains
+            if (isRunning) {
+                shooterLeft.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
+                shooterRight.setVelocity(ShooterConfig.TARGET_VELOCITY_TICKS);
+            }
         }
 
         if (lastTargetVelocity != ShooterConfig.TARGET_VELOCITY_TICKS) {

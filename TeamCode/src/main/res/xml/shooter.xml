@@ -1,13 +1,17 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <Robot type="FirstInspires-FTC">
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
-        <LynxModule name="Control Hub" port="173">
-            <!-- Mechanism motors -->
+        <LynxModule name="Expansion Hub 1" port="1">
             <goBILDA5202SeriesMotor name="shooterMotorLeft"  port="2" />
             <goBILDA5202SeriesMotor name="shooterMotorRight" port="3" />
 
             <!-- Servos -->
             <Servo name="shooterServo"    port="0" />
+
+
+        </LynxModule>
+        <LynxModule name="Control Hub" port="173">
+            <!-- Mechanism motors -->
 
             <!-- <BHI260IMU name="imu" bus="0" /> -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />

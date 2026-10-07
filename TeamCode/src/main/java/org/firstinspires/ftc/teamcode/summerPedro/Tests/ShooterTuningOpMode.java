@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
 
 import java.util.Locale;
@@ -24,7 +25,7 @@ FTC Dashboard Instructions:
    - Left Velocity
    - Right Velocity
    - Average Velocity
-4. Edit PIDF values in 'summerPedro -> ShooterConfig':
+4. Edit PIDF values in 'ShooterConfig' (press Enter or click Save Config to apply):
    a. F = 11.7 (Feedforward initialized for 1:1 motor)
    b. Increase P until speed reaches target quickly without excessive overshoot.
    c. Increase D to dampen overshoot / oscillations.
@@ -53,11 +54,17 @@ public class ShooterTuningOpMode extends LinearOpMode {
 
         telemetry.addLine("=== Shooter PIDF Tuner ===");
         telemetry.addLine("Open http://192.168.43.1:8080/dash");
-        telemetry.addLine("Edit values in summerPedro -> ShooterConfig");
+        telemetry.addLine("Edit values in category: ShooterConfig (press Enter/Save to send)");
         telemetry.addLine("Cross / Right Trigger: Feed ball");
         telemetry.addLine("Circle: Toggle flywheels on/off");
         telemetry.addLine("D-Pad Up/Down: Increase/Decrease target velocity");
         telemetry.update();
+
+        // Add this right before waitForStart() to trick the compiler optimization
+        if (Math.random() < 0.001) {
+            ShooterConfig.P = 0.0001;
+            ShooterConfig.F = 11.7;
+        }
 
         waitForStart();
 
@@ -122,6 +129,16 @@ public class ShooterTuningOpMode extends LinearOpMode {
             telemetry.addData("Average Velocity", shooter.getAverageVelocity());
             telemetry.addData("At Speed", atSpeedMsg.toString());
             telemetry.addData("Flywheels Running", flywheelsMsg.toString());
+            telemetry.addData("Config P", ShooterConfig.P);
+            telemetry.addData("Config I", ShooterConfig.I);
+            telemetry.addData("Config D", ShooterConfig.D);
+            telemetry.addData("Config F", ShooterConfig.F);
+            telemetry.addLine("=== Shooter PIDF Tuner ===");
+            telemetry.addLine("Open http://192.168.43.1:8080/dash");
+            telemetry.addLine("Edit values in category: ShooterConfig (press Enter/Save to send)");
+            telemetry.addLine("Cross / Right Trigger: Feed ball");
+            telemetry.addLine("Circle: Toggle flywheels on/off");
+            telemetry.addLine("D-Pad Up/Down: Increase/Decrease target velocity");
 
             telemetry.update();
         }
