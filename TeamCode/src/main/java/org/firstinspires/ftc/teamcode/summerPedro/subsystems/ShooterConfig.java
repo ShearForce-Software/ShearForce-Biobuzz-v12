@@ -22,6 +22,9 @@ public class ShooterConfig {
     public static double F = 11.7;
     public static double VELOCITY_TOLERANCE = 25.0; // ~53 RPM tolerance
 
+    public static double SHOOTER_SERVO_REST = 0.0;
+    public static double SHOOTER_SERVO_SHOOT = 1.0;
+
     // Private constructor prevents instantiation
     private ShooterConfig() {}
 

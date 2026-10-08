@@ -127,15 +127,12 @@ public class ShooterTuningOpMode extends LinearOpMode {
 
             // Broadcast telemetry to Driver Station and Dashboard Graph
             telemetry.addData("Target Velocity", shooter.getTargetVelocity());
-            telemetry.addData("Left Velocity", shooter.getLeftVelocity());
-            telemetry.addData("Right Velocity", shooter.getRightVelocity());
             telemetry.addData("Average Velocity", shooter.getAverageVelocity());
+            telemetry.addData("Left / Right Velocity", "L: %.1f | R: %.1f", shooter.getLeftVelocity(), shooter.getRightVelocity());
             telemetry.addData("At Speed", atSpeedMsg.toString());
             telemetry.addData("Flywheels Running", flywheelsMsg.toString());
-            telemetry.addData("Config P", ShooterConfig.P);
-            telemetry.addData("Config I", ShooterConfig.I);
-            telemetry.addData("Config D", ShooterConfig.D);
-            telemetry.addData("Config F", ShooterConfig.F);
+            telemetry.addData("ShooterConfig =", "P: %.4f | I: %.2f | D: %.2f | F: %.2f", ShooterConfig.P, ShooterConfig.I, ShooterConfig.D, ShooterConfig.F);
+
             telemetry.addLine("=== Shooter PIDF Tuner ===");
             telemetry.addLine("Open http://192.168.43.1:8080/dash");
             telemetry.addLine("Edit values in category: ShooterConfig (press Enter/Save to send)");

@@ -5,6 +5,8 @@ import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.commands.Commands.waitUntil;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
+import static org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterConfig.SHOOTER_SERVO_REST;
+
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -19,8 +21,6 @@ public class ShooterSubsystem {
     private final DcMotorEx shooterRight;
     private final Servo shooterServo;
 
-    private static final double SHOOTER_SERVO_REST = 0.0;
-    private static final double SHOOTER_SERVO_SHOOT = 1.0;
     // 1750 RPM = 816.7 ticks/sec for goBilda 1:1 Yellow Jacket motors (28 CPR)
     public double target_velocity_ticks = 816.7;
 
@@ -65,7 +65,7 @@ public class ShooterSubsystem {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT); // Coasting prevents gear wear
         }
 
-        shooterServo.setPosition(SHOOTER_SERVO_REST);
+        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_REST);
     }
 
     /**
@@ -74,6 +74,7 @@ public class ShooterSubsystem {
      * Also tracks time to reach speed and startup time.
      */
     public void update() {
+        // if dashboard has adjusted the PIDF at all
         if (lastP != ShooterConfig.P ||
                 lastI != ShooterConfig.I ||
                 lastD != ShooterConfig.D ||
@@ -81,7 +82,6 @@ public class ShooterSubsystem {
 
             // 🔍 This will print to Android Studio's Logcat panel instantly when a packet lands
             android.util.Log.d("SHOOTER_DEBUG", "Dashboard Packet Received! New P: " + ShooterConfig.P + ", New F: " + ShooterConfig.F);
-
 
             lastP = ShooterConfig.P;
             lastI = ShooterConfig.I;
@@ -179,11 +179,11 @@ public class ShooterSubsystem {
     }
 
     public void firePosition() {
-        shooterServo.setPosition(SHOOTER_SERVO_SHOOT);
+        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_SHOOT);
     }
 
     public void restPosition() {
-        shooterServo.setPosition(SHOOTER_SERVO_REST);
+        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_REST);
     }
 
     public double getTargetVelocity() {
