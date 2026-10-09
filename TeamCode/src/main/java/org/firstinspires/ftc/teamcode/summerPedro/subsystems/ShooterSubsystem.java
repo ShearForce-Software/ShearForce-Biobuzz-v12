@@ -22,7 +22,7 @@ public class ShooterSubsystem {
     private final Servo shooterServo;
 
     // 1750 RPM = 816.7 ticks/sec for goBilda 1:1 Yellow Jacket motors (28 CPR)
-    public double target_velocity_ticks = 816.7;
+    public double target_velocity_ticks = 1110.0;
 
     // Cache active PIDF & Target values to detect Dashboard changes
     private double lastP;
