@@ -11,7 +11,7 @@ import static com.pedropathing.ivy.pedro.PedroCommands.hold;
 
 import org.firstinspires.ftc.teamcode.summerPedro.pedro.Constants;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.PoseStorage;
+import org.firstinspires.ftc.teamcode.summerPedro.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
 
 @TeleOp(name = "summerPedro TeleOp", group = "summerPedro")
@@ -33,7 +33,7 @@ public class PedroExampleTeleOp extends OpMode {
         shooter = new ShooterSubsystem(hardwareMap);
 
         // Restore exact ending coordinate Pose from Autonomous
-        follower.setPose(PoseStorage.currentPose);
+        follower.setPose(MatchConfig.currentPose);
     }
 
     @Override

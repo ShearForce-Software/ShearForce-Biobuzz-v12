@@ -19,7 +19,7 @@ import static com.pedropathing.ivy.commands.Commands.instant;
 
 import org.firstinspires.ftc.teamcode.summerPedro.pedro.Constants;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.PoseStorage;
+import org.firstinspires.ftc.teamcode.summerPedro.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
 
 @Autonomous(name = "summerPedro Shooter", group = "summerPedro")
@@ -73,7 +73,7 @@ public class PedroExampleAutoShooter extends LinearOpMode {
                         shooter.stopFlywheelsCommand(),
 
                         // Save final pose for TeleOp
-                        instant(() -> PoseStorage.currentPose = follower.pose())
+                        instant(() -> MatchConfig.currentPose = follower.pose())
                 )
         );
 

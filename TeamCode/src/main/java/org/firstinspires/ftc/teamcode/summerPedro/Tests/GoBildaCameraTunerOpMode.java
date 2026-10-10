@@ -102,6 +102,9 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
         // Apply initial settings
         applyCameraSettings();
 
+        // Enable live camera stream on FTC Dashboard
+        FtcDashboard.getInstance().startCameraStream(visionPortal, 0);
+
         telemetry.addLine("=== Camera Ready ===");
         telemetry.addLine("Press START to run interactive tuning.");
         telemetry.update();
@@ -126,6 +129,7 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
         }
 
         // Clean up camera stream on stop
+        FtcDashboard.getInstance().stopCameraStream();
         if (visionPortal != null) {
             visionPortal.close();
         }
