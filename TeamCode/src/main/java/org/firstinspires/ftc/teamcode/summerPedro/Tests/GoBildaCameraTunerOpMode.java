@@ -28,14 +28,14 @@ import org.firstinspires.ftc.teamcode.summerPedro.subsystems.GoBildaCameraConfig
 
 /**
  * Interactive Test and Tuning OpMode for the GoBilda Global Shutter Camera.
- * 
+
  * Features:
  * - BioBuzz Season AprilTag Cluster Detection and Pose Tracking (RED SCORING, RED AUDIENCE,
  *   BLUE AUDIENCE, BLUE SCORING).
  * - Real-time camera setting adjustments (Exposure, Gain, Decimation, Auto/Manual Exposure)
  *   via Gamepad 1 controls and FTC Dashboard.
  * - Live camera FPS and camera controls telemetry.
- * 
+
  * Gamepad 1 Controls:
  * - D-Pad Up / Down: Increase / Decrease Exposure (ms)
  * - D-Pad Left / Right: Decrease / Increase Gain
@@ -45,6 +45,7 @@ import org.firstinspires.ftc.teamcode.summerPedro.subsystems.GoBildaCameraConfig
  * - Button Triangle (Y): Reset Camera Settings to Defaults
  */
 @TeleOp(name = "GoBilda Camera AprilTag Tuner", group = "summerPedro")
+@SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class GoBildaCameraTunerOpMode extends LinearOpMode {
 
     private VisionPortal visionPortal;

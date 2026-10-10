@@ -23,21 +23,18 @@ import org.firstinspires.ftc.teamcode.summerPedro.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
 
 @Autonomous(name = "summerPedro Shooter", group = "summerPedro")
+@SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class PedroExampleAutoShooter extends LinearOpMode {
     private Follower follower;
-    private IntakeSubsystem intake;
-    private ShooterSubsystem shooter;
-    private ElapsedTime matchTimer;
-
     @Override
     public void runOpMode() {
         Scheduler.reset();
 
         // Instantiate subsystems
         follower = Constants.create(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap);
-        shooter = new ShooterSubsystem(hardwareMap);
-        matchTimer = new ElapsedTime();
+        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
+        ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
+        ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
         Pose startPose = new Pose(0, 0, 0);

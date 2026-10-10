@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.summerPedro.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
 
 @TeleOp(name = "summerPedro TeleOp", group = "summerPedro")
+@SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class PedroExampleTeleOp extends OpMode {
     private Follower follower;
     private Command holdCommand = null; // Store the command reference to allow cancelling
