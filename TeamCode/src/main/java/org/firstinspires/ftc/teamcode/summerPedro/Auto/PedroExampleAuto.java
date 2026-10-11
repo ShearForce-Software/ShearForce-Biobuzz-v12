@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.summerPedro.pedro.Constants;
 
 @Autonomous(name = "summerPedro Example", group = "summerPedro")
+@SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class PedroExampleAuto extends OpMode {
     private Follower follower;
     private final PoseFactory poseFactory = PoseFactory.degrees();

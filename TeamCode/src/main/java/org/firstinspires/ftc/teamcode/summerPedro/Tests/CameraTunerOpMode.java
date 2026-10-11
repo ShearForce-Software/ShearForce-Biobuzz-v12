@@ -1,41 +1,27 @@
 package org.firstinspires.ftc.teamcode.summerPedro.Tests;
 
-import android.util.Size;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.GoBildaCameraConfig;
+import org.firstinspires.ftc.teamcode.summerPedro.subsystems.CameraConfig;
+import org.firstinspires.ftc.teamcode.summerPedro.subsystems.CameraSubsystem;
 
 /**
  * Interactive Test and Tuning OpMode for the GoBilda Global Shutter Camera.
-
- * Features:
- * - BioBuzz Season AprilTag Cluster Detection and Pose Tracking (RED SCORING, RED AUDIENCE,
- *   BLUE AUDIENCE, BLUE SCORING).
- * - Real-time camera setting adjustments (Exposure, Gain, Decimation, Auto/Manual Exposure)
- *   via Gamepad 1 controls and FTC Dashboard.
- * - Live camera FPS and camera controls telemetry.
-
+ *
+ * Uses CameraSubsystem to handle vision setup, settings, and AprilTag cluster tracking.
+ *
  * Gamepad 1 Controls:
  * - D-Pad Up / Down: Increase / Decrease Exposure (ms)
  * - D-Pad Left / Right: Decrease / Increase Gain
@@ -44,30 +30,13 @@ import org.firstinspires.ftc.teamcode.summerPedro.subsystems.GoBildaCameraConfig
  * - Button Square (X): Cycle Cluster Filter ("ALL", "RED SCORING", "RED AUDIENCE", "BLUE AUDIENCE", "BLUE SCORING")
  * - Button Triangle (Y): Reset Camera Settings to Defaults
  */
-@TeleOp(name = "GoBilda Camera AprilTag Tuner", group = "summerPedro")
+@TeleOp(name = "Camera AprilTag Tuner", group = "Tuning")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
-public class GoBildaCameraTunerOpMode extends LinearOpMode {
+public class CameraTunerOpMode extends LinearOpMode {
 
-    private VisionPortal visionPortal;
-    private AprilTagProcessor aprilTagProcessor;
+    private CameraSubsystem cameraSubsystem;
 
-    // Camera control interfaces
-    private ExposureControl exposureControl;
-    private GainControl gainControl;
-
-    // Hardware limits
-    private long minExposureMs = 1;
-    private long maxExposureMs = 100;
-    private int minGain = 0;
-    private int maxGain = 255;
-
-    // Local tuning variables initialized from Config
-    private boolean autoExposure = GoBildaCameraConfig.AUTO_EXPOSURE;
-    private long exposureMs = GoBildaCameraConfig.EXPOSURE_MS;
-    private int gain = GoBildaCameraConfig.GAIN;
-    private float decimation = GoBildaCameraConfig.DECIMATION;
     private int clusterFilterIndex = 0;
-
     private static final String[] CLUSTER_FILTERS = {
             "ALL", "RED SCORING", "RED AUDIENCE", "BLUE AUDIENCE", "BLUE SCORING"
     };
@@ -90,21 +59,18 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
         // Multi-telemetry pushes logs to both Driver Station and FTC Dashboard
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        telemetry.addLine("=== Initializing GoBilda Global Shutter Camera ===");
+        telemetry.addLine("=== Initializing GoBilda Global Shutter Camera Subsystem ===");
         telemetry.update();
 
-        initVisionPortal();
+        cameraSubsystem = new CameraSubsystem(hardwareMap);
 
         // Wait for camera stream to start before querying control bounds
         waitForCameraStreaming();
 
-        queryCameraControlBounds();
-
-        // Apply initial settings
-        applyCameraSettings();
+        cameraSubsystem.queryCameraControlBoundsAndApply();
 
         // Enable live camera stream on FTC Dashboard
-        FtcDashboard.getInstance().startCameraStream(visionPortal, 0);
+        cameraSubsystem.startDashboardStream();
 
         telemetry.addLine("=== Camera Ready ===");
         telemetry.addLine("Press START to run interactive tuning.");
@@ -130,101 +96,19 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
         }
 
         // Clean up camera stream on stop
-        FtcDashboard.getInstance().stopCameraStream();
-        if (visionPortal != null) {
-            visionPortal.close();
+        if (cameraSubsystem != null) {
+            cameraSubsystem.close();
         }
-    }
-
-    /**
-     * Initializes the AprilTagProcessor and VisionPortal using the BioBuzz Tag Library.
-     */
-    private void initVisionPortal() {
-        // Build AprilTag Processor using the full current game tag library (includes BioBuzz clusters)
-        aprilTagProcessor = new AprilTagProcessor.Builder()
-                .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
-                .setDrawAxes(GoBildaCameraConfig.DRAW_AXES)
-                .setDrawTagOutline(GoBildaCameraConfig.DRAW_TAG_OUTLINE)
-                .setDrawCubeProjection(GoBildaCameraConfig.DRAW_CUBE_PROJECTION)
-                .setDrawTagID(GoBildaCameraConfig.DRAW_TAG_ID)
-                .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-                .build();
-
-        aprilTagProcessor.setDecimation(decimation);
-
-        WebcamName webcamName;
-        try {
-            webcamName = hardwareMap.get(WebcamName.class, GoBildaCameraConfig.CAMERA_NAME);
-        } catch (Exception e) {
-            telemetry.addData("Warning", "Camera '%s' not found, trying 'Webcam 1'", GoBildaCameraConfig.CAMERA_NAME);
-            webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
-        }
-
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(webcamName)
-                .setCameraResolution(new Size(GoBildaCameraConfig.STREAM_WIDTH, GoBildaCameraConfig.STREAM_HEIGHT))
-                .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
-                .addProcessor(aprilTagProcessor)
-                .build();
     }
 
     /**
      * Waits until the VisionPortal camera stream is active.
      */
     private void waitForCameraStreaming() {
-        while (!isStopRequested() && visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            telemetry.addData("Camera State", visionPortal.getCameraState());
+        while (!isStopRequested() && cameraSubsystem.getVisionPortal().getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera State", cameraSubsystem.getVisionPortal().getCameraState());
             telemetry.update();
             sleep(50);
-        }
-    }
-
-    /**
-     * Queries min/max limits for Exposure and Gain supported by the GoBilda camera.
-     */
-    private void queryCameraControlBounds() {
-        if (visionPortal == null) return;
-
-        exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-        if (exposureControl != null) {
-            minExposureMs = Math.max(1, exposureControl.getMinExposure(TimeUnit.MILLISECONDS));
-            maxExposureMs = exposureControl.getMaxExposure(TimeUnit.MILLISECONDS);
-        }
-
-        gainControl = visionPortal.getCameraControl(GainControl.class);
-        if (gainControl != null) {
-            minGain = gainControl.getMinGain();
-            maxGain = gainControl.getMaxGain();
-        }
-    }
-
-    /**
-     * Applies exposure, gain, and decimation settings to the camera and processor.
-     */
-    private void applyCameraSettings() {
-        if (visionPortal == null || visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) return;
-
-        if (exposureControl != null) {
-            if (autoExposure) {
-                if (exposureControl.isModeSupported(ExposureControl.Mode.ContinuousAuto)) {
-                    exposureControl.setMode(ExposureControl.Mode.ContinuousAuto);
-                }
-            } else {
-                if (exposureControl.isModeSupported(ExposureControl.Mode.Manual)) {
-                    exposureControl.setMode(ExposureControl.Mode.Manual);
-                }
-                exposureMs = Math.max(minExposureMs, Math.min(maxExposureMs, exposureMs));
-                exposureControl.setExposure(exposureMs, TimeUnit.MILLISECONDS);
-            }
-        }
-
-        if (gainControl != null && !autoExposure) {
-            gain = Range.clip(gain, minGain, maxGain);
-            gainControl.setGain(gain);
-        }
-
-        if (aprilTagProcessor != null) {
-            aprilTagProcessor.setDecimation(decimation);
         }
     }
 
@@ -247,55 +131,60 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
 
         boolean changed = false;
 
+        boolean autoExp = cameraSubsystem.isAutoExposure();
+        long expMs = cameraSubsystem.getExposureMs();
+        int gain = cameraSubsystem.getGain();
+        float dec = cameraSubsystem.getDecimation();
+
         // D-Pad Up / Down: Adjust Exposure
         if (currentDpadUp && !lastDpadUp) {
-            autoExposure = false;
-            exposureMs += exposureStep;
+            autoExp = false;
+            expMs += exposureStep;
             changed = true;
         } else if (currentDpadDown && !lastDpadDown) {
-            autoExposure = false;
-            exposureMs -= exposureStep;
+            autoExp = false;
+            expMs -= exposureStep;
             changed = true;
         }
 
         // D-Pad Left / Right: Adjust Gain
         if (currentDpadRight && !lastDpadRight) {
-            autoExposure = false;
+            autoExp = false;
             gain += gainStep;
             changed = true;
         } else if (currentDpadLeft && !lastDpadLeft) {
-            autoExposure = false;
+            autoExp = false;
             gain -= gainStep;
             changed = true;
         }
 
         // Bumpers: Adjust Decimation step
         if (currentRightBumper && !lastRightBumper) {
-            decimation = getNextDecimation(decimation, 1);
+            dec = getNextDecimation(dec, 1);
             changed = true;
         } else if (currentLeftBumper && !lastLeftBumper) {
-            decimation = getNextDecimation(decimation, -1);
+            dec = getNextDecimation(dec, -1);
             changed = true;
         }
 
         // Button Cross (A): Toggle Auto vs Manual Exposure
         if (currentCross && !lastCross) {
-            autoExposure = !autoExposure;
+            autoExp = !autoExp;
             changed = true;
         }
 
         // Button Square (X): Cycle Cluster Filter
         if (currentSquare && !lastSquare) {
             clusterFilterIndex = (clusterFilterIndex + 1) % CLUSTER_FILTERS.length;
-            GoBildaCameraConfig.CLUSTER_FILTER = CLUSTER_FILTERS[clusterFilterIndex];
+            CameraConfig.CLUSTER_FILTER = CLUSTER_FILTERS[clusterFilterIndex];
         }
 
         // Button Triangle (Y): Reset settings to defaults
         if (currentTriangle && !lastTriangle) {
-            autoExposure = false;
-            exposureMs = GoBildaCameraConfig.EXPOSURE_MS;
-            gain = GoBildaCameraConfig.GAIN;
-            decimation = GoBildaCameraConfig.DECIMATION;
+            autoExp = false;
+            expMs = CameraConfig.EXPOSURE_MS;
+            gain = CameraConfig.GAIN;
+            dec = CameraConfig.DECIMATION;
             changed = true;
         }
 
@@ -310,12 +199,17 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
         lastTriangle = currentTriangle;
 
         if (changed) {
-            applyCameraSettings();
+            cameraSubsystem.setAutoExposure(autoExp);
+            cameraSubsystem.setExposureMs(expMs);
+            cameraSubsystem.setGain(gain);
+            cameraSubsystem.setDecimation(dec);
+            cameraSubsystem.applyCameraSettings();
+
             // Sync local values back to Config for Dashboard display
-            GoBildaCameraConfig.AUTO_EXPOSURE = autoExposure;
-            GoBildaCameraConfig.EXPOSURE_MS = exposureMs;
-            GoBildaCameraConfig.GAIN = gain;
-            GoBildaCameraConfig.DECIMATION = decimation;
+            CameraConfig.AUTO_EXPOSURE = autoExp;
+            CameraConfig.EXPOSURE_MS = expMs;
+            CameraConfig.GAIN = gain;
+            CameraConfig.DECIMATION = dec;
         }
     }
 
@@ -338,24 +232,24 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
      */
     private void syncDashboardConfig() {
         boolean changed = false;
-        if (GoBildaCameraConfig.AUTO_EXPOSURE != autoExposure) {
-            autoExposure = GoBildaCameraConfig.AUTO_EXPOSURE;
+        if (CameraConfig.AUTO_EXPOSURE != cameraSubsystem.isAutoExposure()) {
+            cameraSubsystem.setAutoExposure(CameraConfig.AUTO_EXPOSURE);
             changed = true;
         }
-        if (GoBildaCameraConfig.EXPOSURE_MS != exposureMs) {
-            exposureMs = GoBildaCameraConfig.EXPOSURE_MS;
+        if (CameraConfig.EXPOSURE_MS != cameraSubsystem.getExposureMs()) {
+            cameraSubsystem.setExposureMs(CameraConfig.EXPOSURE_MS);
             changed = true;
         }
-        if (GoBildaCameraConfig.GAIN != gain) {
-            gain = GoBildaCameraConfig.GAIN;
+        if (CameraConfig.GAIN != cameraSubsystem.getGain()) {
+            cameraSubsystem.setGain(CameraConfig.GAIN);
             changed = true;
         }
-        if (Math.abs(GoBildaCameraConfig.DECIMATION - decimation) > 0.05f) {
-            decimation = GoBildaCameraConfig.DECIMATION;
+        if (Math.abs(CameraConfig.DECIMATION - cameraSubsystem.getDecimation()) > 0.05f) {
+            cameraSubsystem.setDecimation(CameraConfig.DECIMATION);
             changed = true;
         }
         if (changed) {
-            applyCameraSettings();
+            cameraSubsystem.applyCameraSettings();
         }
     }
 
@@ -363,17 +257,28 @@ public class GoBildaCameraTunerOpMode extends LinearOpMode {
      * Renders telemetry for camera controls, performance, and detected BioBuzz AprilTag clusters.
      */
     private void displayTelemetry() {
+        VisionPortal vp = cameraSubsystem.getVisionPortal();
         telemetry.addLine("=== GoBilda Global Shutter Camera Tuner ===");
-        telemetry.addData("Camera State", visionPortal.getCameraState());
-        telemetry.addData("Camera FPS", String.format(Locale.US, "%.1f FPS", visionPortal.getFps()));
-        telemetry.addData("Exposure Mode", autoExposure ? "AUTO" : "MANUAL");
-        telemetry.addData("Exposure (ms)", String.format(Locale.US, "%d ms (Limits: %d - %d ms)", exposureMs, minExposureMs, maxExposureMs));
-        telemetry.addData("Gain", String.format(Locale.US, "%d (Limits: %d - %d)", gain, minGain, maxGain));
-        telemetry.addData("Decimation", String.format(Locale.US, "%.1f", decimation));
+        telemetry.addData("Camera State", vp.getCameraState());
+        telemetry.addData("Camera FPS", String.format(Locale.US, "%.1f FPS", vp.getFps()));
+        telemetry.addData("Exposure Mode", cameraSubsystem.isAutoExposure() ? "AUTO" : "MANUAL");
+        telemetry.addData("Exposure (ms)", String.format(Locale.US, "%d ms (Limits: %d - %d ms)",
+                cameraSubsystem.getExposureMs(), cameraSubsystem.getMinExposureMs(), cameraSubsystem.getMaxExposureMs()));
+        telemetry.addData("Gain", String.format(Locale.US, "%d (Limits: %d - %d)",
+                cameraSubsystem.getGain(), cameraSubsystem.getMinGain(), cameraSubsystem.getMaxGain()));
+        telemetry.addData("Decimation", String.format(Locale.US, "%.1f", cameraSubsystem.getDecimation()));
         telemetry.addData("Cluster Filter", CLUSTER_FILTERS[clusterFilterIndex]);
+
+        // Display Heading Correction if available
+        double correctedHeading = cameraSubsystem.getCorrectedPedroHeading();
+        if (!Double.isNaN(correctedHeading)) {
+            telemetry.addData("Corrected Pedro Heading (deg)", String.format(Locale.US, "%.2f°", Math.toDegrees(correctedHeading)));
+        } else {
+            telemetry.addData("Corrected Pedro Heading", "N/A (No Cluster)");
+        }
         telemetry.addLine();
 
-        List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+        List<AprilTagDetection> detections = cameraSubsystem.getDetections();
         int totalDetections = detections.size();
         telemetry.addData("Total AprilTag Detections", totalDetections);
 

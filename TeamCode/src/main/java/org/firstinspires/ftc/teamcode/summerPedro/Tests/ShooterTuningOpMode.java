@@ -37,6 +37,7 @@ FTC Dashboard Instructions:
    - D-Pad Down: Decrement target velocity (-50 ticks/sec).
  */
 @TeleOp(name = "Shooter PIDF Tuner", group = "Tuning")
+@SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class ShooterTuningOpMode extends LinearOpMode {
 
     private static final double VELOCITY_STEP_TICKS = 50.0; // ~107 RPM step change

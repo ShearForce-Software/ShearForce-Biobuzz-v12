@@ -6,10 +6,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
+import com.pedropathing.math.Velocity;
+
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.pedro.PedroCommands.hold;
 
 import org.firstinspires.ftc.teamcode.summerPedro.pedro.Constants;
+import org.firstinspires.ftc.teamcode.summerPedro.subsystems.CameraSubsystem;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
@@ -21,6 +24,7 @@ public class PedroExampleTeleOp extends OpMode {
     private Command holdCommand = null; // Store the command reference to allow cancelling
     private IntakeSubsystem intake;
     private ShooterSubsystem shooter;
+    private CameraSubsystem camera;
 
     private boolean isHolding = false;
     private boolean lastCrossState = false; // Tracks button state for toggle
@@ -32,6 +36,8 @@ public class PedroExampleTeleOp extends OpMode {
         follower = Constants.create(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
+        camera = new CameraSubsystem(hardwareMap);
+        camera.queryCameraControlBoundsAndApply();
 
         // Restore exact ending coordinate Pose from Autonomous
         follower.setPose(MatchConfig.currentPose);
@@ -89,6 +95,19 @@ public class PedroExampleTeleOp extends OpMode {
             follower.manual(fieldCentricForward, fieldCentricStrafe, turn);
         }
 
+        // Periodically correct heading drift via AprilTag vision when robot velocity is zero
+        Velocity robotVel = follower.localizer.velocity();
+        double linearSpeed = Math.hypot(robotVel.vx, robotVel.vy);
+        double angularSpeed = Math.abs(robotVel.omega);
+        boolean isRobotStationary = !driverInputDetected && linearSpeed < 0.05 && angularSpeed < 0.05;
+
+        if (isRobotStationary) {
+            double correctedHeading = camera.getCorrectedPedroHeading();
+            if (!Double.isNaN(correctedHeading)) {
+                follower.setHeading(correctedHeading);
+            }
+        }
+
         // Operator Mechanism Controls
         // Intake: Right Trigger to Intake, Left Trigger to Reverse
         if (gamepad2.right_trigger > 0.1) {
@@ -124,5 +143,12 @@ public class PedroExampleTeleOp extends OpMode {
         telemetry.addData("Shooter Ready", shooter.isAtSpeed());
         telemetry.addData("Pose", follower.pose().toString());
         telemetry.update();
+    }
+
+    @Override
+    public void stop() {
+        if (camera != null) {
+            camera.close();
+        }
     }
 }
