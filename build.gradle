@@ -36,12 +36,23 @@ tasks.register('connectToHub', Exec) {
     ignoreExitValue = true
 
     if (System.getProperty('os.name').toLowerCase().contains('windows')) {
-        // Dynamically grabs your Windows home directory (e.g., C:\Users\YourName)
         def userHome = System.getProperty("user.home")
         def adbPath = "${userHome}\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe"
-
         commandLine 'cmd', '/c', "${adbPath} connect 192.168.43.1:5555"
     } else {
-        commandLine 'adb', 'connect', '192.168.43.1:5555'
+        // Dynamically find the macOS/Linux home directory
+        def userHome = System.getProperty("user.home")
+        // Default standalone Android Studio SDK path on macOS
+        def adbPath = "${userHome}/Library/Android/sdk/platform-tools/adb"
+
+        // Fallback check: if Android Studio's SDK isn't there, check Homebrew's path
+        if (!new File(adbPath).exists()) {
+            adbPath = "/opt/homebrew/bin/adb" // Default for Apple Silicon Macs
+        }
+        if (!new File(adbPath).exists()) {
+            adbPath = "/usr/local/bin/adb"    // Default for Intel Macs
+        }
+
+        commandLine adbPath, 'connect', '192.168.43.1:5555'
     }
 }
