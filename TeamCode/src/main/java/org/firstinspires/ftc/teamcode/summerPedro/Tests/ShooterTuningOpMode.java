@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterConfig;
 import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
@@ -46,6 +47,11 @@ public class ShooterTuningOpMode extends LinearOpMode {
     private boolean lastDpadUpState = false;
     private boolean lastDpadDownState = false;
 
+    private boolean lastLeftStickUp = false;
+    private boolean lastLeftStickDown = false;
+    private boolean lastRightStickUp = false;
+    private boolean lastRightStickDown = false;
+
     private double[] stepSizes = {10.0, 1.0, 0.1, 0.001, 0.0001};
     private int stepIndex = 1;
 
@@ -68,6 +74,7 @@ public class ShooterTuningOpMode extends LinearOpMode {
         telemetry.addLine("Square Button: Change PIDF step size");
         telemetry.addLine("D-Pad Up/Down: Increase/Decrease PIDF P value");
         telemetry.addLine("D-Pad Left/Right: Increase/Decrease PIDF F value");
+        telemetry.addLine("Left/Right Stick Y: Adjust Servo Shoot / Rest positions");
         telemetry.update();
 
         waitForStart();
@@ -139,6 +146,31 @@ public class ShooterTuningOpMode extends LinearOpMode {
                 shooter.setVelocity(newVel);
             }
 
+            // Adjust Servo SHOOT position with Left Stick Y and REST position with Right Stick Y (0.1 step increments)
+            // Pushing UP on stick Y (negative value) increments position by +0.1
+            // Pushing DOWN on stick Y (positive value) decrements position by -0.1
+            boolean currentLeftStickUp = gamepad1.left_stick_y < -0.1;
+            boolean currentLeftStickDown = gamepad1.left_stick_y > 0.1;
+
+            if (currentLeftStickUp && !lastLeftStickUp) {
+                ShooterConfig.SHOOTER_SERVO_SHOOT = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT + 0.1, 0.0, 1.0);
+            } else if (currentLeftStickDown && !lastLeftStickDown) {
+                ShooterConfig.SHOOTER_SERVO_SHOOT = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT - 0.1, 0.0, 1.0);
+            }
+            lastLeftStickUp = currentLeftStickUp;
+            lastLeftStickDown = currentLeftStickDown;
+
+            boolean currentRightStickUp = gamepad1.right_stick_y < -0.1;
+            boolean currentRightStickDown = gamepad1.right_stick_y > 0.1;
+
+            if (currentRightStickUp && !lastRightStickUp) {
+                ShooterConfig.SHOOTER_SERVO_REST = Range.clip(ShooterConfig.SHOOTER_SERVO_REST + 0.1, 0.0, 1.0);
+            } else if (currentRightStickDown && !lastRightStickDown) {
+                ShooterConfig.SHOOTER_SERVO_REST = Range.clip(ShooterConfig.SHOOTER_SERVO_REST - 0.1, 0.0, 1.0);
+            }
+            lastRightStickUp = currentRightStickUp;
+            lastRightStickDown = currentRightStickDown;
+
             // Format "At Speed" message with last time to speed / recovery duration
             StringBuilder atSpeedMsg = new StringBuilder(shooter.isAtSpeed() ? "TRUE" : "FALSE");
             if (shooter.getLastTimeToSpeed() >= 0) {
@@ -169,6 +201,7 @@ public class ShooterTuningOpMode extends LinearOpMode {
             telemetry.addData("Velocity Error", "%.2f ticks/sec (%.2f RPM)", currentVelocityError, currentRPMError);
             telemetry.addData("At Speed", atSpeedMsg.toString());
             telemetry.addData("Flywheels Running", flywheelsMsg.toString());
+            telemetry.addData("Servo Positions", "Shoot: %.2f | Rest: %.2f", ShooterConfig.SHOOTER_SERVO_SHOOT, ShooterConfig.SHOOTER_SERVO_REST);
             telemetry.addData("PIDF ", "P: %.4f (DPAD UP/DOWN)", ShooterConfig.P);
             telemetry.addData("PIDF ", "F: %.2f (DPAD LEFT/RIGHT)", ShooterConfig.F);
             telemetry.addData("Step Size", "%.4f (SQUARE)", stepSizes[stepIndex]);
@@ -184,6 +217,7 @@ public class ShooterTuningOpMode extends LinearOpMode {
             telemetry.addLine("Square Button: Change PIDF step size");
             telemetry.addLine("D-Pad Up/Down: Increase/Decrease PIDF P value");
             telemetry.addLine("D-Pad Left/Right: Increase/Decrease PIDF F value");
+            telemetry.addLine("Left/Right Stick Y: Adjust Servo Shoot / Rest positions");
 
             telemetry.update();
         }
