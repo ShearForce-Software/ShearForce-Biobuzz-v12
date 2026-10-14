@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.pedro.procedures;
 
-import static com.pedropathing.api.Paths.curve;
-import static com.pedropathing.api.Paths.line;
-
 import com.pedropathing.algorithm.Algorithm;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -21,6 +18,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import static com.pedropathing.api.Paths.curve;
+import static com.pedropathing.api.Paths.line;
 
 public class Tests extends Procedure {
     enum Test {
