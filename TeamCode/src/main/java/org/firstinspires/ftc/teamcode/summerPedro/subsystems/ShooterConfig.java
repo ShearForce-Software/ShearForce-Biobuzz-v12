@@ -18,10 +18,10 @@ public class ShooterConfig {
     // Exposing variables as public static lets Dashboard edit them live
     public static double MOTOR_ENCODER_TICKS_PER_REVOLUTION = 28.0; // goBilda 1:1 Yellow Jacket (28 CPR)
 
-    public static double P = 0.0;
+    public static double P = 3.3;
     public static double I = 0.0;
     public static double D = 0.0;
-    public static double F = 29.52;
+    public static double F = 12.64;
     public static double VELOCITY_TOLERANCE = 25.0; // ~53 RPM tolerance
 
     public static double SHOOTER_SERVO_REST = 1.0;
