@@ -17,6 +17,16 @@ This file tracks the upcoming software tasks.
 - [ ] **Add methods to return bearing and distance to closest April Tag cluster**
 - [ ] **Add methods to return state of hive (Audience up/down)**
 - [ ] **Add methods to utilize blob detection to orient robot towards biggest piles of pollen**
+- Camera test data:
+  - Real distance: 24 in.	camera distance: 30 in.	difference: 6 in.	exposure: 1 ms	gain: 100		notes: worked great
+    Real distance: 36 in.	camera distance: 41 in.	difference: 5 in.	exposure: 1 ms	gain: 100		notes: worked pretty good
+    Real distance: 48 in.	camera distance: 51 in.	difference: 3 in.	exposure: 1 ms	gain: 100		notes: detected almost all of the time
+    Real distance: 54 in.	camera distance: 57 in.	difference: 3 in.	exposure: 1 ms	gain: 100		notes: worked about half of the time
+    Real distance: 57 in.	camera distance: 60 in.	difference: 3 in.	exposure: 1 ms	gain: 100		notes: rarely worked
+    Real distance: 60 in.	exposure: 1 ms	gain: 100		notes: did not detect
+    Real distance: 72 in.	exposure: 1 ms	gain: 100		notes: did not detect
+    Real distance: 84 in.	exposure: 1 ms	gain: 100		notes: did not detect
+    Stopped detecting it all the time at 48 in.
 
 ## ⚙️ Subsystems & Mechanisms ⚙️
 - [ ] **Finish Tuning the Shooter mechanism**
