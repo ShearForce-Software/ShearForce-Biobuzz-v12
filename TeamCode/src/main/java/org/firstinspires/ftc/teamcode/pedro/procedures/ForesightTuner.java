@@ -1,7 +1,4 @@
-package org.firstinspires.ftc.teamcode.summerPedro.pedro.procedures;
-
-import static com.pedropathing.utils.Utils.linearFit;
-import static com.pedropathing.utils.Utils.quadraticFit;
+package org.firstinspires.ftc.teamcode.pedro.procedures;
 
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -16,11 +13,11 @@ import com.pedropathing.utils.Utils;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
+
+import static com.pedropathing.utils.Utils.linearFit;
+import static com.pedropathing.utils.Utils.quadraticFit;
 
 public class ForesightTuner extends Procedure {
     Function<HardwareMap, Localizer> localizerFunction;
@@ -290,6 +287,8 @@ class ForwardDeceleration extends TuningOpMode<Double> {
 
                 stopping = true;
                 drivetrain.stop(false);
+            } else {
+                drivetrain.drive(power, false);
             }
         }
 
@@ -297,6 +296,7 @@ class ForwardDeceleration extends TuningOpMode<Double> {
 
         while (!end) {
             localizer.update();
+            drivetrain.stop(false);
             double currentVelocity = localizer.twist().toVector2D().x();
             long currentTimeNano = System.nanoTime();
             double dt = (currentTimeNano - previousTimeNano) / 1e9;
@@ -381,12 +381,15 @@ class StrafeDeceleration extends TuningOpMode<Double> {
 
                 stopping = true;
                 drivetrain.stop(false);
+            } else {
+                drivetrain.drive(power, false);
             }
         }
 
         boolean end = false;
 
         while (!end) {
+            drivetrain.stop(false);
             localizer.update();
             double currentVelocity = localizer.twist().toVector2D().y();
             long currentTimeNano = System.nanoTime();
@@ -636,6 +639,8 @@ class HeadingTuner extends TuningOpMode<Double> {
                     done = true;
                     systemIdentification();
                     drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
+                } else {
+                    drivetrain.drive(new DrivePowers(0.0, 0.0, POWER), false);
                 }
             }
         }
@@ -1087,6 +1092,8 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
                     done = true;
                     systemIdentification();
                     drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
+                } else {
+                    drivetrain.drive(new DrivePowers(POWER, 0.0, 0.0), false);
                 }
             }
         }
@@ -1205,6 +1212,8 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
                     done = true;
                     systemIdentification();
                     drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
+                } else {
+                    drivetrain.drive(new DrivePowers(0.0, POWER, 0.0), false);
                 }
             }
         }
