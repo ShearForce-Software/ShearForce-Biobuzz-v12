@@ -13,8 +13,8 @@ public class CameraConfig {
     public static String CAMERA_NAME = "Webcam 1";
 
     // Resolution settings (e.g., 640x480, 800x600, 1280x720)
-    public static int STREAM_WIDTH = 640;
-    public static int STREAM_HEIGHT = 480;
+    public static int STREAM_WIDTH = 1280;
+    public static int STREAM_HEIGHT = 800;
 
     // Exposure & Gain settings (Global shutter cameras benefit from short exposures)
     public static boolean AUTO_EXPOSURE = false;
@@ -23,7 +23,7 @@ public class CameraConfig {
 
     // AprilTag Processor settings
     // DECIMATION controls the downsampling of the camera image to balance detection speed versus tracking distance accuracy
-    public static float DECIMATION = 2.0f; // Decimation 1 = max distance accuracy/slower, 2 = fast FPS/good range
+    public static float DECIMATION = 1.0f; // Decimation 1 = max distance accuracy/slower, 2 = fast FPS/good range
     public static boolean DRAW_AXES = true;
     public static boolean DRAW_TAG_OUTLINE = true;
     public static boolean DRAW_CUBE_PROJECTION = false;
