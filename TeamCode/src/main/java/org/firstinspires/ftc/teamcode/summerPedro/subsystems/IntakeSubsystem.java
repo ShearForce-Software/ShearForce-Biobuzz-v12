@@ -100,13 +100,13 @@ public class IntakeSubsystem {
                 instant(this::turnOff)
         );
     }*/
-    }
+    //}
 
-    public Command intakeUntilFullCommand(double ticksPerSecond) {
+    /*public Command intakeUntilFullCommand(double ticksPerSecond) {
         return sequential(
                 instant(() -> turnOn(ticksPerSecond)),
                 waitUntil(this::isMaxCapacityReached),
                 instant(this::turnOff)
         );
-    }
+    }*/
 }
