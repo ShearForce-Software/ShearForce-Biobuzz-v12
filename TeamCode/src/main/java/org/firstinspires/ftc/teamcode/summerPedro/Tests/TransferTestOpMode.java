@@ -34,6 +34,10 @@ public class TransferTestOpMode extends LinearOpMode {
     private boolean lastTriangle = false;
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
+    private boolean rotateModeOn = false;
+    private double targetTicks = 0;
+    private double rotation1 = TransferConfig.TICKS_PER_REV;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -76,6 +80,19 @@ public class TransferTestOpMode extends LinearOpMode {
                 transfer.stop();
             }
 
+            //move 1 rotation
+            if(gamepad1.dpadRightWasPressed()){
+                transfer.setPower(customSpeed);
+                double encoderCurrentTicks = transfer.getRawTicks();
+                targetTicks = encoderCurrentTicks + rotation1;
+                rotateModeOn = true;
+            }
+            if (rotateModeOn){
+                if (transfer.getRawTicks() >= targetTicks){
+                    transfer.stop();
+                    rotateModeOn = false;
+                }
+            }
             // Reset Through Bore Encoder Position
             boolean currentTriangle = gamepad1.triangle;
             if (currentTriangle && !lastTriangle) {

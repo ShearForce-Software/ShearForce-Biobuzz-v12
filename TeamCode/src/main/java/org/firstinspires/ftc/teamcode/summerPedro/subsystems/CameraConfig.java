@@ -19,7 +19,7 @@ public class CameraConfig {
     // Exposure & Gain settings (Global shutter cameras benefit from short exposures)
     public static boolean AUTO_EXPOSURE = false;
     public static long EXPOSURE_MS = 1;
-    public static int GAIN = 100;
+    public static int GAIN = 0;
 
     // AprilTag Processor settings
     // DECIMATION controls the downsampling of the camera image to balance detection speed versus tracking distance accuracy
