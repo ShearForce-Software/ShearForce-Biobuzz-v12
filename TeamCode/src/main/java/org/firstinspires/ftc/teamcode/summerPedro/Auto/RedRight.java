@@ -39,11 +39,12 @@ public class RedRight extends LinearOpMode {
 
         // Target Poses
         Pose startPose = new Pose(60, 9, Math.toRadians(90));
-        Pose gardenControlPoint = new Pose(44, 18, Math.toRadians(180));
-        Pose garden = new Pose(22, 10, Math.toRadians(180));
+        Pose gardenControlPoint = new Pose(41, 19, Math.toRadians(180));
+        Pose garden = new Pose(22, 9, Math.toRadians(180));
         Pose collectGarden = new Pose(9, 9, Math.toRadians(180));
+        Pose gardenToShootControl = new Pose(33, 18, Math.toRadians(90));
         Pose shootPose = new Pose(60, 9, Math.toRadians(90));
-        Pose flower = new Pose(48, 10, Math.toRadians(180));
+        Pose flower = new Pose(10, 48, Math.toRadians(180));
 
 
         // Set starting pose
@@ -53,7 +54,7 @@ public class RedRight extends LinearOpMode {
         Path driveToGarden = curve(startPose, gardenControlPoint, garden).linear(startPose, garden);
         Path collectFromGarden = line(garden, collectGarden).linear(garden, collectGarden);
         Path leaveGarden = line(collectGarden, garden).linear(collectGarden, garden);
-        Path driveToShoot = curve(garden, gardenControlPoint, shootPose).linear(collectGarden, shootPose);
+        Path driveToShoot = curve(garden, gardenToShootControl, shootPose).linear(collectGarden, shootPose);
         Path driveToFlower = line(shootPose, flower).linear(shootPose, flower);
         Path flowerToShoot = line(flower, shootPose).linear(flower, shootPose);
 
