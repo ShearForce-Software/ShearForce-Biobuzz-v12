@@ -11,11 +11,11 @@ import com.qualcomm.robotcore.hardware.TouchSensor; // Mock capacity sensor
 
 public class IntakeSubsystem {
     private final DcMotorEx intakeMotor;
-    private final TouchSensor capacitySensor;
+    //private final TouchSensor capacitySensor;
 
     public IntakeSubsystem(HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intake");
-        capacitySensor = hardwareMap.get(TouchSensor.class, "capacitySensor");
+        //capacitySensor = hardwareMap.get(TouchSensor.class, "capacitySensor");
     }
 
     // --- Hardware Control Methods ---
@@ -32,9 +32,9 @@ public class IntakeSubsystem {
         intakeMotor.setPower(-1.0);
     }
 
-    public boolean isMaxCapacityReached() {
+    /*public boolean isMaxCapacityReached() {
         return capacitySensor.isPressed();
-    }
+    }*/
 
     // --- Ivy Command Generators ---
 
@@ -62,11 +62,11 @@ public class IntakeSubsystem {
     /**
      * Complete intake sequence: turns on intake, waits until max capacity sensor is triggered, then turns off intake.
      */
-    public Command intakeUntilFullCommand() {
+    /*public Command intakeUntilFullCommand() {
         return sequential(
                 instant(this::turnOn),
                 waitUntil(this::isMaxCapacityReached),
                 instant(this::turnOff)
         );
-    }
+    }*/
 }
