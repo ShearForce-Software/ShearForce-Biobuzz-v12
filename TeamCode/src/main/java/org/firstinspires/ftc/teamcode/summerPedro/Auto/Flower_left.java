@@ -38,22 +38,30 @@ public class Flower_left extends LinearOpMode {
         ElapsedTime matchTimer = new ElapsedTime();
         //Flower left plan 1
         // Target Poses
-        Pose startPose = new Pose(49, 128, Math.toRadians(0));
-        Pose Pose1 = new Pose(15, 49, Math.toRadians(0));
-        Pose Pose2 = new Pose(38, 110, Math.toRadians(0));
-        Pose Pose3 = new Pose(10, 10, Math.toRadians(80));
-        Pose controlPose = new Pose(28.46, 12.39, Math.toRadians(80));
-        Pose Pose4 = new Pose(38, 23, Math.toRadians(80));
+        Pose startPose = new Pose(60, 135, Math.toRadians(90));
+        Pose Pose1 = new Pose(49, 130, Math.toRadians(90));
+        Pose controlPose = new Pose(61.32, 126.86, Math.toRadians(90));
+        Pose Pose2 = new Pose(49, 119, Math.toRadians(110));
+        Pose Pose3 = new Pose(14, 49, Math.toRadians(180));
+        Pose controlPose2 = new Pose(26.7, 88.098, Math.toRadians(180));
+        Pose Pose4 = new Pose(38, 110, Math.toRadians(140));
+        Pose Pose5 = new Pose(10, 10, Math.toRadians(80));
+        Pose controlPose3 = new Pose(11.46, 25, Math.toRadians(80));
+        Pose Pose6 = new Pose(38, 25, Math.toRadians(-120));
+        Pose Pose7 = new Pose(10, 102, Math.toRadians(180));
 
         // Set starting pose
         follower.setPose(startPose);
 
         // Pedro 3 Path API: Paths replace PathChain completely
         Path driveToShoot1 = line(startPose, Pose1).linear(startPose, Pose1);
-        Path driveToShoot2 = line(Pose1, Pose2).linear(Pose1, Pose2);
-        Path driveToShoot3   = line(Pose2, Pose3).linear(Pose2, Pose3);
-        Path control = curve(Pose3, controlPose, Pose4).linear(Pose3, Pose4);
-        Path driveToShoot4   = line(Pose3, Pose4).linear(Pose3, Pose4);
+        Path control = curve(Pose1, controlPose, Pose2).linear(Pose1, Pose2);
+        Path driveToShoot2 = line(Pose2, Pose3).linear(Pose2, Pose3);
+        Path driveToShoot3   = line(Pose3, Pose4).linear(Pose3, Pose4);
+        Path driveToShoot4   = line(Pose4, Pose5).linear(Pose4, Pose5);
+        Path control2 = curve(Pose5, controlPose3, Pose6).linear(Pose5, Pose6);
+        Path driveToShoot5   = line(Pose6, Pose7).linear(Pose6, Pose7);
+
 
         // Build the Ivy Autonomous Command Sequence
         schedule(
@@ -61,11 +69,11 @@ public class Flower_left extends LinearOpMode {
                         instant(matchTimer::reset),
                         // Spin up the flywheels
                         //shooter.startFlywheelsCommand(),
-                        waitMs(2000), // waits 2000ms
+                        waitMs(1500), // waits 2000ms
                         // Segment 1: Drive to Shoot 1 & Shoot
                         follow(follower, driveToShoot1),
                         //shooter.firePositionCommand(),
-                        waitMs(2000),
+                        waitMs(1000),
                         // Segment 2: Drive to Shoot 2 & Shoot
                         follow(follower, driveToShoot2),
                         //shooter.firePositionCommand(),
@@ -73,8 +81,11 @@ public class Flower_left extends LinearOpMode {
                         // Segment 3: Park & stop flywheels
                         follow(follower, driveToShoot3),
                         //shooter.stopFlywheelsCommand(),
-
+                        waitMs(2000),
                         follow(follower, driveToShoot4),
+                        waitMs(1000),
+                        follow(follower, driveToShoot5),
+                        waitMs(1000),
 
                         // Save final pose for TeleOp
                         instant(() -> MatchConfig.currentPose = follower.pose())

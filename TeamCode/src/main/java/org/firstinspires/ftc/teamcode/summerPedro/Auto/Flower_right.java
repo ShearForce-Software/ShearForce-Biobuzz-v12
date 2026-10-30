@@ -37,11 +37,11 @@ public class Flower_right extends LinearOpMode {
         //Flower left plan 1
         // Target Poses
         Pose startPose = new Pose(25, 9, Math.toRadians(90));
-        Pose Pose1 = new Pose(49, 24.5, Math.toRadians(90));
+        Pose Pose1 = new Pose(49, 24.5, Math.toRadians(75));
         Pose Pose2 = new Pose(10, 10, Math.toRadians(80));
-        Pose Pose3 = new Pose(37, 105, Math.toRadians(90));
+        Pose Pose3 = new Pose(37, 115, Math.toRadians(310));
         Pose Pose4 = new Pose(14, 50, Math.toRadians(25));
-        Pose Pose5 = new Pose(37,107, Math.toRadians(40));
+        Pose Pose5 = new Pose(37,115, Math.toRadians(310));
 
         // Set starting pose
         follower.setPose(startPose);
