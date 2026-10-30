@@ -35,16 +35,23 @@ public class path3pedroYellow extends LinearOpMode {
 
         // Target Poses
         Pose startPose = new Pose(60, 135, 0);
-        Pose collectPollen = new Pose(49, 134, Math.toRadians(0));
-        Pose shootPose = new Pose(10, 10, Math.toRadians(90));
-        Pose shootPose2 = new Pose(49, 30, Math.toRadians(0));
-        Pose drivePose2 = new Pose(26, 30, Math.toRadians(0));
+        Pose collectPollen = new Pose(49, 134, Math.toRadians(90));
+        Pose shootPose = new Pose(60, 134, Math.toRadians(90));
+        Pose oppositeShoot = new Pose(60, 12, Math.toRadians(180));
+        Pose drivePose = new Pose(60, 120, Math.toRadians(0));
+        Pose drivePose1 = new Pose(10, 120, Math.toRadians(0));
+        Pose parkPose = new Pose(10, 107, Math.toRadians(0));
 
         // Set starting pose
         follower.setPose(startPose);
 
         // Pedro 3 Path API: Paths replace PathChain completely
         Path driveToShoot1 = line(startPose, collectPollen).linear(startPose,collectPollen);
+        Path collectPollenDrive = line(collectPollen, shootPose).linear(collectPollen,shootPose);
+        Path oppositeSide = line(shootPose, oppositeShoot).linear(shootPose,oppositeShoot);
+        Path retreat = line(oppositeShoot, drivePose).linear(oppositeShoot,drivePose);
+        Path readyToPark = line(drivePose, drivePose1).linear(drivePose,drivePose1);
+        Path Park = line(drivePose1, parkPose).linear(drivePose1,parkPose);
 
         // Build the Ivy Autonomous Command Sequence
         schedule(
@@ -53,25 +60,19 @@ public class path3pedroYellow extends LinearOpMode {
                         // Spin up the flywheels
 
 
-                        // Segment 1: Drive to Shoot 1 & Shoot
-                        follow(follower, driveToShoot1),
+                        // Segment 1: Drive to Shoot 1 & Collect
                         waitMs(1000),
+                        follow(follower, collectPollenDrive),
+                        waitMs(4000),
 
-
-                        // Segment 2: Drive to Shoot 2 & Shoot
-                       follow(follower, driveToGarden),
-                        follow(follower, driveToShoot2),
-                       waitMs(1000),
-                        follow(follower,retreat),
-
-                        // Segment 3: Drive to opposite side
-                        follow(follower, driveToEnd),
-                        follow(follower, driveToShoot3),
+                        // Segment 2: Drive to Shoot & Return
+                       follow(follower, oppositeSide),
                         waitMs(1000),
-                        follow(follower, retreat2),
+                        follow(follower, retreat),
 
-                        // Segment 4: Drive to Park
-                        follow(follower, driveToPark),
+                        // Segment 3: Park
+                        follow(follower, readyToPark),
+                        follow(follower, Park),
 
 
                         // Save final pose for TeleOp
