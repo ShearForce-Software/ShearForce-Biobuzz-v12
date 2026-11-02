@@ -4,25 +4,32 @@ This file tracks the upcoming software tasks.
 
 *Check off items as they are completed and tested on the robot.*
 
-## 🚀 Drive System and Auto Routing 🚀
-- [✅] **Finish Tuning PedroPathing**
+## 🚀 Drive System, TeleOp, and Auto Routing 🚀
+- [ ] **Update biobuzz.xml with actual locations things are plugged in**
+  - Verify _ExampleRedAuto can be initialized without crashing (it has all subsystems defined in it)
+- [ ] **Tune new BIOBUZZ robot for PedroPathing**
 - [ ] **Test PedroPathing example routes**
-    - [ ] Verify basic path following works as expected
+    - Verify basic path following works as expected
+- [ ] **Test BiobuzzTeleOp for basic manual drive controls**
+- [ ] **Update names of existing Auto routes to show color, plan set (1,2, or 3), and start position**
+  - make similar to "red_plan3_Audience_side" and "red_plan3_TV_side" style naming
+- [ ] **Create Plan 1 RED - Audience route**
+- [ ] **Create Plan 1 RED - TV side route**
+- [ ] **Create Plan 2 RED - Audience route**
+- [ ] **Create Plan 2 RED - TV side route**
+- [ ] **Create Plan 3 RED - Audience route**
+- [ ] **Create Plan 3 RED - TV side route**
+- [ ] **Create Plan 1 BLUE - Audience and TV side routes**
+- [ ] **Create Plan 2 BLUE - Audience and TV side routes**
+- [ ] **Create Plan 3 BLUE - Audience and TV side routes**
+- [ ] **Update Subsystem gamepad controls in BiobuzzTeleOp as needed**
+- [ ] **Update subsystem and sensor telemetry messages to BioBuzzTeleOp as needed**
 
 ## 📷 Vision & Localization 📷
-- [ ] **Figure out why Camera isn't working well anymore**
-  - See if the knurled lockring on the camera lens barrel can be manually adjusted to focus the camera while a monitor is hooked up, optimize for 7 feet
-  - Additional changes have been made that need to be tested:
-    - Resolution changed to 1280x800
-    - Decimation changed to 1.0
-    - teamwebcamcalibrations.xml has been updated
-- [ ] **Test camera April Tag localization distances**
-    - [ ] Measure the distance from likely starting position on wall to closest April Tag Cluster and to the April Tag on the opposite side of the hive
-    - [ ] Measure accuracy at 4 feet, 6 feet, 7 feet, 10 feet, and 12 feet.
-    - [ ] Document the maximum reliable detection threshold (in code and in log book)
-- [ ] **Add methods to return bearing and distance to closest April Tag cluster**
-- [ ] **Add methods to return state of hive (Audience up/down)**
 - [ ] **Add methods to utilize blob detection to orient robot towards biggest piles of pollen**
+- [ ] **Verify camera is working on new BIOBUZZ robot** 
+  - Using the biobuzz.xml config file and the CameraTunerOpMode
+  - May need to update biobuzz.xml config file for the actual camera ID**
 
 ### 📷 Camera Distance Test Data 📷
 
@@ -40,27 +47,29 @@ This file tracks the upcoming software tasks.
 *Note: Consistent detection threshold cuts off around 48 in.*
 
 ## ⚙️ Subsystems & Mechanisms ⚙️
-- [✅] **Finish Tuning the Shooter mechanism**
+- [✅] **Shooter Testing**
     - Find the "F" value that makes the average velocity match the target velocity
     - Find the "P" value that minimizes the time to reach the target velocity from a slower speed without significantly overshooting
     - Update the defaults in ShooterConfig file with the new calculated values
-- [ ] **Develop Intake Testing OpMode**
-  - Need to be able to control speed of intake motor
-  - Need to be able to control direction of intake motor
-  - Need to be able to command a servo (flower ramp thing)
-  - Need to be able to adjust the servo up position and down position
-  - Needs telemetry showing all of those values, and informing user on GamePad Controls to use
-  - Needs an XML config file stored in code
-- [ ] **Develop Transfer System Testing OpMode**
-  - Needs a subsystem and config file created in same style as other subsystems
-  - Needs to utilize a Continuous Servo (control direction and speed)
-  - Needs to support an external encoder to track position of transfer device 
-    - gamepad controls in test opMode to adjust ticks per degree
-    - telemetry showing current position
-  - Needs to support 4 color sensors
-    - telemetry showing color of each sensor and if a ball is present and detected distance of detected ball
-    - gamepad controls can adjust minimum and maximum distance to detect a ball is present
+- [ ] **Intake Testing**
+  - Determine optimum speed for intake motor
+  - Test depollinator control, determine optimum up/down values for servo
+  - Verify ramp sensors working to detect Nectar versus Pollen
+  - Add ability to detect wrong color Nectar on ramp and auto eject it
+- [ ] **Transfer System Testing**
+  - Test encoder to determine correct tick/revolution value
+  - Test ability to move forward or reverse 1 hole spot
+  - Test ability to detect presence of Nectar or Pollen in each slot
+- [ ] **Intake + Transfer Subsystems Testing**
+  - Add ability to auto advance transfer subsystem to next slot when intake is on and ball detected in bottom spot
+  - Add ability to auto turn off intake when all slots are filled
+  - Test and verify wrong color Nectar never slips in
+  - Test and verify never hold more than 4 game elements
+- [ ] **Test shooter on actual field with actual intake and transfer subsystems**
+  - Determine optimum speeds for key locations
 
 ## 📝 Reference Notes
-* **Active Config:** Stored in `TeamCode/res/xml/`
+* **Active Config:** Stored in `TeamCode/res/xml/biobuzz.xml`
+* **Strategy Notes about auto routes (pictures):** Stored in `Strategy-Notes/`
+
 

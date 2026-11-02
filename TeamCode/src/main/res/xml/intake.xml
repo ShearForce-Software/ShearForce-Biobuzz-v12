@@ -2,8 +2,10 @@
 <Robot type="FirstInspires-FTC">
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Expansion Hub 2" port="2">
+            <!-- Mechanism motors -->
             <goBILDA5202SeriesMotor name="intake"  port="0" />
             <!-- Servos -->
+            <Servo name="depollinatorServo"    port="2" />
 
 
 
@@ -14,6 +16,8 @@
 
             <!-- <BHI260IMU name="imu" bus="0" /> -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+            <RevColorSensorV3 name="intakeColorRampBack" port="1" bus="2"/>
+            <RevColorSensorV3 name="intakeColorRampFront" port="3" bus="2"/>
 
         </LynxModule>
     </LynxUsbDevice>

@@ -4,16 +4,25 @@
         <LynxModule name="Expansion Hub 2" port="2">
             <Motor name="transferEncoder" port="0" />
             <!-- Servos -->
-            <ContinuousRotationServo name="transferServo" port="0" />
+            <ContinuousRotationServo name="transferServo" port="1" />
+
+            <!-- Digital Sensors -->
+            <RevColorSensorV3 name="transferColorTop" port="0" bus="2"/>
+            <RevColorSensorV3 name="transferColorRight" port="1" bus="2"/>
+            <RevColorSensorV3 name="transferColorBottomBack" port="2" bus="2"/>
+            <RevColorSensorV3 name="transferColorBottomFront" port="3" bus="2"/>
 
 
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
             <!-- Mechanism motors -->
+            <!-- TRANSFER ENCODER (same port as left rear?) -->
+            <Motor name="transferEncoder" port="1" />
             <!-- Servos -->
 
-            <!-- <BHI260IMU name="imu" bus="0" /> -->
+            <!-- Digital Sensors -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+             <RevColorSensorV3 name="transferColorLeft" port="2" bus="2"/>
 
         </LynxModule>
     </LynxUsbDevice>

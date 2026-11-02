@@ -12,12 +12,12 @@ import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.pedro.PedroCommands.hold;
 
 import org.firstinspires.ftc.teamcode.summerPedro.pedro.Constants;
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.CameraSubsystem;
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.MatchConfig;
-import org.firstinspires.ftc.teamcode.summerPedro.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.CameraSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
 
-@TeleOp(name = "summerPedro TeleOp", group = "summerPedro")
+@TeleOp(name = "summerPedro TeleOp", group = "Testing")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class PedroExampleTeleOp extends OpMode {
     private Follower follower;

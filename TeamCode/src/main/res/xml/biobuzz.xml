@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<Robot type="FirstInspires-FTC">
+    <!-- Camera -->
+    <Webcam name="Webcam 1" serialNumber="44E45CAF" />
+
+    <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
+        <LynxModule name="Expansion Hub 1" port="1">
+            <!-- Drive motors (make the names match code !!!!!!!!!!!!!) -->
+            <goBILDA5202SeriesMotor name="rightFront_centerOdometry" port="0" />
+            <goBILDA5202SeriesMotor name="rightRear_rightOdometry" port="1" />
+
+            <!-- SHOOTER motors -->
+            <goBILDA5202SeriesMotor name="shooterMotorLeft"  port="2" />
+            <goBILDA5202SeriesMotor name="shooterMotorRight" port="3" />
+
+            <!-- Servos -->
+            <Servo name="shooterServo"    port="0" />
+            <ContinuousRotationServo name="transferServo" port="1" />
+            <Servo name="depollinatorServo"    port="2" />
+
+            <!-- Digital Sensors -->
+            <RevColorSensorV3 name="transferColorTop" port="0" bus="2"/>
+            <RevColorSensorV3 name="transferColorRight" port="1" bus="2"/>
+            <RevColorSensorV3 name="transferColorBottomBack" port="2" bus="2"/>
+            <RevColorSensorV3 name="transferColorBottomFront" port="3" bus="2"/>
+
+        </LynxModule>
+        <LynxModule name="Control Hub" port="173">
+
+            <!-- Drive motors (make the names match code !!!!!!!!!!!!!) -->
+            <!-- <DcMotorEx name="leftFront_leftOdometry"  port="01" /> -->
+            <goBILDA5202SeriesMotor name="leftFront_leftOdometry"  port="0" />
+            <goBILDA5202SeriesMotor name="leftRear"                 port="1" />
+
+            <!-- INTAKE  motor-->
+            <goBILDA5202SeriesMotor name="intake"  port="2" />
+            <!-- TRANSFER ENCODER (same port as left rear?) -->
+            <Motor name="transferEncoder" port="1" />
+            <!-- TURRET MOTOR ??? -->
+            <goBILDA5202SeriesMotor name="turretMotor"       port="3" />
+
+
+            <!-- Servos -->
+
+            <!-- Digital Sensors -->
+            <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+            <goBILDAPinpoint name="pinpoint" port="0" bus="1"/>
+            <RevColorSensorV3 name="intakeColorRampBack" port="1" bus="2"/>
+            <RevColorSensorV3 name="transferColorLeft" port="2" bus="2"/>
+            <RevColorSensorV3 name="intakeColorRampFront" port="3" bus="2"/>
+
+
+        </LynxModule>
+    </LynxUsbDevice>
+
+    <!-- Optional Limelight -->
+    <!-- <EthernetDevice name="limelight" serialNumber="EthernetOverUsb:eth0:172.29.0.29" port="-1" ipAddress="172.29.0.1" /> -->
+</Robot>
