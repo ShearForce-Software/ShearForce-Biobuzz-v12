@@ -30,6 +30,9 @@ This file tracks the upcoming software tasks.
 - [ ] **Verify camera is working on new BIOBUZZ robot** 
   - Using the biobuzz.xml config file and the CameraTunerOpMode
   - May need to update biobuzz.xml config file for the actual camera ID**
+- [ ] **Create Test OpMode to calculate distance to target based on aprilTab size**
+  - Watch YouTube video explaining concept:  https://www.youtube.com/watch?v=Ap1lBywv00M
+  - If works, then incorporate calculation into CameraSubsystem
 
 ### 📷 Camera Distance Test Data 📷
 
