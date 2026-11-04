@@ -5,7 +5,7 @@ This file tracks the upcoming software tasks.
 *Check off items as they are completed and tested on the robot.*
 
 ## 🚀 Drive System, TeleOp, and Auto Routing 🚀
-- [ ] **Update biobuzz.xml with actual locations things are plugged in**
+- [X] **Update biobuzz.xml with actual locations things are plugged in**
   - Verify _ExampleRedAuto can be initialized without crashing (it has all subsystems defined in it)
 - [ ] **Tune new BIOBUZZ robot for PedroPathing**
 - [ ] **Test PedroPathing example routes**
@@ -50,26 +50,28 @@ This file tracks the upcoming software tasks.
 *Note: Consistent detection threshold cuts off around 48 in.*
 
 ## ⚙️ Subsystems & Mechanisms ⚙️
-- [✅] **Shooter Testing**
-    - Find the "F" value that makes the average velocity match the target velocity
-    - Find the "P" value that minimizes the time to reach the target velocity from a slower speed without significantly overshooting
-    - Update the defaults in ShooterConfig file with the new calculated values
 - [ ] **Intake Testing**
-  - Determine optimum speed for intake motor
-  - Test depollinator control, determine optimum up/down values for servo
-  - Verify ramp sensors working to detect Nectar versus Pollen
-  - Add ability to detect wrong color Nectar on ramp and auto eject it
+  - [ ] Determine optimum speed for intake motor
+  - [ ] Test depollinator control, determine optimum up/down values for servo
+  - [ ] Verify ramp sensors working to detect presence of a ball (nectar or pollen)
+  - [ ] Verify ramp sensors working to detect difference between Nectar versus Pollen
+  - [ ] Add ability to detect wrong color Nectar on ramp and auto eject it
 - [ ] **Transfer System Testing**
-  - Test encoder to determine correct tick/revolution value
-  - Test ability to move forward or reverse 1 hole spot
-  - Test ability to detect presence of Nectar or Pollen in each slot
-- [ ] **Intake + Transfer Subsystems Testing**
-  - Add ability to auto advance transfer subsystem to next slot when intake is on and ball detected in bottom spot
-  - Add ability to auto turn off intake when all slots are filled
-  - Test and verify wrong color Nectar never slips in
-  - Test and verify never hold more than 4 game elements
-- [ ] **Test shooter on actual field with actual intake and transfer subsystems**
-  - Determine optimum speeds for key locations
+  - [ ] Test encoder to determine correct tick/revolution value
+  - [ ] Test ability to move forward or reverse 1 hole spot
+  - [ ] Test ability to detect presence of a ball (nectar or pollen) in each slot
+  - [ ] Test ability to detect difference of color between Nectar or Pollen in each slot
+- [ ] **Intake + Transfer Combo Testing**
+  - [ ] Add ability to auto advance transfer subsystem to next slot when intake is on and ball detected in bottom spot
+  - [ ] Add ability to auto turn off intake when all slots are filled
+  - [ ] Test and verify wrong color Nectar never slips in
+  - [ ] Test and verify never hold more than 4 game elements
+- [ ] **Intake + Transfer + Shooter Combo Testing**
+  - Test shooter on actual field
+  - Determine best velocities for several distances
+  - See if can determine an optimum "curve" algorithm to use for shooting based on distance
+    - https://mycurvefit.com/
+    - Reference: https://www.youtube.com/watch?v=Ap1lBywv00M (aprilTag distance algorithm but relevant method)
 
 ## 📝 Reference Notes
 * **Active Config:** Stored in `TeamCode/res/xml/biobuzz.xml`
