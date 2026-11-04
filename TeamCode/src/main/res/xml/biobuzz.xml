@@ -5,51 +5,39 @@
 
     <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Expansion Hub 2" port="2">
-            <!-- Drive motors (make the names match code !!!!!!!!!!!!!) -->
-            <goBILDA5202SeriesMotor name="intake"  port="0" />
+            <!-- motors (make the names match code !!!!!!!!!!!!!) -->
+            <goBILDA5202SeriesMotor name="intake"            port="0" />
             <goBILDA5202SeriesMotor name="turretMotor"       port="1" />
-
-            <!-- SHOOTER motors -->
             <goBILDA5202SeriesMotor name="shooterMotorLeft"  port="2" />
             <goBILDA5202SeriesMotor name="shooterMotorRight" port="3" />
 
             <!-- Servos -->
-            <Servo name="shooterServo"    port="0" />
-            <ContinuousRotationServo name="transferServo" port="1" />
-            <Servo name="depollinatorServo"    port="2" />
 
-            <!-- Digital Sensors -->
-            <RevColorSensorV3 name="transferColorTop" port="0" bus="2"/>
-            <RevColorSensorV3 name="transferColorRight" port="1" bus="2"/>
-            <RevColorSensorV3 name="transferColorBottomBack" port="2" bus="2"/>
-            <RevColorSensorV3 name="transferColorBottomFront" port="3" bus="2"/>
+            <!-- I2C Digital Sensors -->
+            <RevColorSensorV3 name="transferColorTop" port="0" bus="0"/>
+            <RevColorSensorV3 name="transferColorRight" port="0" bus="1"/>
+            <RevColorSensorV3 name="transferColorBottomBack" port="0" bus="2"/>
+            <RevColorSensorV3 name="transferColorBottomFront" port="0" bus="3"/>
 
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
-
-            <!-- Drive motors (make the names match code !!!!!!!!!!!!!) -->
-            <!-- <DcMotorEx name="leftFront_leftOdometry"  port="01" /> -->
-            <goBILDA5202SeriesMotor name="leftFront_leftOdometry"  port="0" />
-            <goBILDA5202SeriesMotor name="leftRear"                 port="3" />
+            <!-- motors (make the names match code !!!!!!!!!!!!!) -->
+            <goBILDA5202SeriesMotor name="leftFront_leftOdometry"    port="0" />
             <goBILDA5202SeriesMotor name="rightFront_centerOdometry" port="1" />
-            <goBILDA5202SeriesMotor name="rightRear_rightOdometry" port="2" />
-            <!-- INTAKE  motor-->
-
-            <!-- TRANSFER ENCODER (same port as left rear?) -->
-            <!-- <Motor name="transferEncoder" port="0" /> -->
-            <!-- TURRET MOTOR ??? -->
-
-
+            <goBILDA5202SeriesMotor name="rightRear_rightOdometry"   port="2" />
+            <goBILDA5202SeriesMotor name="leftRear"                  port="3" />
 
             <!-- Servos -->
+            <Servo name="depollinatorServo"               port="0" />
+            <ContinuousRotationServo name="transferServo" port="1" />
+            <Servo name="shooterServo"                    port="2" />
 
-            <!-- Digital Sensors -->
+            <!-- I2C Digital Sensors -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
             <goBILDAPinpoint name="pinpoint" port="0" bus="1"/>
-            <RevColorSensorV3 name="intakeColorRampBack" port="1" bus="2"/>
-            <RevColorSensorV3 name="transferColorLeft" port="2" bus="2"/>
-            <RevColorSensorV3 name="intakeColorRampFront" port="3" bus="2"/>
-
+            <RevColorSensorV3 name="intakeColorRampBack" port="0" bus="0"/>
+            <RevColorSensorV3 name="transferColorLeft" port="0" bus="2"/>
+            <RevColorSensorV3 name="intakeColorRampFront" port="0" bus="3"/>
 
         </LynxModule>
     </LynxUsbDevice>
