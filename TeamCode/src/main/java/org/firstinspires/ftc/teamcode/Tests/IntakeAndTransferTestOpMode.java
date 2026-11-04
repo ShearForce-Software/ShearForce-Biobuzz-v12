@@ -40,7 +40,7 @@ import java.util.Locale;
 @TeleOp(name = "Intake & Transfer Combined Test", group = "Testing")
 @SuppressWarnings("unused")
 public class IntakeAndTransferTestOpMode extends LinearOpMode {
-    private double customTransferSpeed = TransferConfig.FORWARD_POWER;
+    private double customTransferSpeed = Math.abs(TransferConfig.FORWARD_POWER);
 
     // Edge detection for Gamepad 1 stick-based tuning
     private boolean lastLeftStickUp = false;
@@ -144,9 +144,9 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
 
             // Servo Rotation Controls
             if (gamepad2.cross || gamepad2.right_trigger > 0.1) {
-                transferSubsystem.setPower(customTransferSpeed);
-            } else if (gamepad2.square || gamepad2.left_trigger > 0.1) {
                 transferSubsystem.setPower(-customTransferSpeed);
+            } else if (gamepad2.square || gamepad2.left_trigger > 0.1) {
+                transferSubsystem.setPower(customTransferSpeed);
             } else if (gamepad2.circle) {
                 transferSubsystem.stop();
             }

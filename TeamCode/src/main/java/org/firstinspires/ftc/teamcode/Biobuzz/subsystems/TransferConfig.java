@@ -19,13 +19,13 @@ public class TransferConfig {
     public static String COLOR_SENSOR_BOTTOM_FRONT_NAME = "transferColorBottomFront";
 
     // Servo Power Constants
-    public static double FORWARD_POWER = 0.8;
-    public static double REVERSE_POWER = -0.8;
+    public static double FORWARD_POWER = -0.8;
+    public static double REVERSE_POWER = 0.8;
     public static double STOP_POWER = 0.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
     public static double TICKS_PER_REV = 8192.0;
-    public static boolean ENCODER_REVERSED = false;
+    public static boolean ENCODER_REVERSED = true;
 
     // Color Sensor Detection Thresholds
     public static double DISTANCE_THRESHOLD_MM = 45.0; // Distance in mm to consider a ball present

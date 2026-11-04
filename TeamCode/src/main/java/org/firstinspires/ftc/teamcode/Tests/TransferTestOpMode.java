@@ -31,7 +31,7 @@ import java.util.Locale;
 @SuppressWarnings("unused")
 public class TransferTestOpMode extends LinearOpMode {
 
-    private double customSpeed = TransferConfig.FORWARD_POWER;
+    private double customSpeed = Math.abs(TransferConfig.FORWARD_POWER);
     //boolean autoTransfer = false;
 
     @Override
@@ -68,9 +68,9 @@ public class TransferTestOpMode extends LinearOpMode {
 
             // Servo Rotation Controls
             if (gamepad1.cross || gamepad1.right_trigger > 0.1) {
-                transfer.setPower(customSpeed);
-            } else if (gamepad1.square || gamepad1.left_trigger > 0.1) {
                 transfer.setPower(-customSpeed);
+            } else if (gamepad1.square || gamepad1.left_trigger > 0.1) {
+                transfer.setPower(customSpeed);
             } else if (gamepad1.circle) {
                 transfer.stop();
             }

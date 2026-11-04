@@ -17,10 +17,11 @@ public class IntakeConfig {
 
     // Motor Target Velocity Constants (encoder ticks per second)
     public static double DEFAULT_INTAKE_VELOCITY = 1110.0;
+    public static boolean INTAKE_MOTOR_REVERSED = true;
 
     // De-pollinator Servo Position Constants
-    public static double DEPOLLINATOR_SERVO_UP = 0.0;
-    public static double DEPOLLINATOR_SERVO_DOWN = 1.0;
+    public static double DEPOLLINATOR_SERVO_UP = 0.4; //TODO - test and determine these values, setting around the middle to minimize safety concerns
+    public static double DEPOLLINATOR_SERVO_DOWN = 0.6;
 
     // Color Sensor Detection Thresholds
     public static double DISTANCE_THRESHOLD_MM = 45.0; // Distance in mm to consider a ball present

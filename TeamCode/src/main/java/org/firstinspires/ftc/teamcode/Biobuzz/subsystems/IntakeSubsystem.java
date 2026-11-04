@@ -4,6 +4,7 @@ import static com.pedropathing.ivy.commands.Commands.instant;
 
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -45,6 +46,12 @@ public class IntakeSubsystem {
 
     public IntakeSubsystem(HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, IntakeConfig.INTAKE_MOTOR_NAME);
+        if (IntakeConfig.INTAKE_MOTOR_REVERSED) {
+            intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        } else {
+            intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        }
+
         depollinatorServo = hardwareMap.get(Servo.class, IntakeConfig.DEPOLLINATOR_SERVO_NAME);
 
         // Default depollinator servo to UP position
