@@ -32,6 +32,7 @@ import java.util.Locale;
 public class TransferTestOpMode extends LinearOpMode {
 
     private double customSpeed = TransferConfig.FORWARD_POWER;
+    //boolean autoTransfer = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -81,6 +82,15 @@ public class TransferTestOpMode extends LinearOpMode {
                 transfer.advance1SlotReverse();
             }
 
+           /* if (gamepad1.optionsWasPressed() && gamepad1.circleWasPressed()) {
+                autoTransfer = true;
+            }
+
+            if (autoTransfer) {
+                if (transfer.isSlotOccupied(TransferSubsystem.Slot.BOTTOM)) {
+                    transfer.advance1SlotForward();
+                }
+            }*/
             // Reset Through Bore Encoder Position via Triangle
             if (gamepad1.triangleWasPressed()) {
                 transfer.resetEncoder();
