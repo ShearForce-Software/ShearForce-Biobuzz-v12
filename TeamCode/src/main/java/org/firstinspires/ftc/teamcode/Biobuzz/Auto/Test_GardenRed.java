@@ -20,9 +20,9 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
 
-@Autonomous(name = "Garden red", group = "summerPedro")
+@Autonomous(name = "Test Garden red", group = "summerPedro")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
-public class GardenRed extends LinearOpMode {
+public class Test_GardenRed extends LinearOpMode {
     private Follower follower;
     @Override
     public void runOpMode() {
