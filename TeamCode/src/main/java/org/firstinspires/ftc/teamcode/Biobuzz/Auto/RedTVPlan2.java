@@ -22,9 +22,9 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
 
-@Autonomous(name = "redRight", group = "summerPedro")
+@Autonomous(name = "redAudiencePlan2", group = "summerPedro")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
-public class RedRight extends LinearOpMode {
+public class RedTVPlan2 extends LinearOpMode {
     //For Sharing-plan-2
     private Follower follower;
     @Override
@@ -36,25 +36,26 @@ public class RedRight extends LinearOpMode {
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
-        Pose startPose = new Pose(60, 9, Math.toRadians(90));
-        Pose gardenControlPoint = new Pose(41, 19, Math.toRadians(180));
-        Pose garden = new Pose(22, 9, Math.toRadians(180));
-        Pose collectGarden = new Pose(9, 9, Math.toRadians(180));
-        Pose gardenToShootControl = new Pose(33, 18, Math.toRadians(90));
-        Pose shootPose = new Pose(60, 9, Math.toRadians(90));
-        Pose flower = new Pose(10, 48, Math.toRadians(180));
+        Pose startPose = new Pose(63, 135, Math.toRadians(-90));
+        Pose controlForFlower = new Pose(55.5, 100, Math.toRadians(90));
+        Pose flower = new Pose(48,135, Math.toRadians(90));
+        Pose shoot2 = new Pose(48, 120, Math.toRadians(-70));
+        Pose hive1 = new Pose(55, 95, Math.toRadians(-90));
+        Pose hive2 = new Pose (59, 61.5, Math.toRadians(-90));
+        Pose hive3 = new Pose (59, 103, Math.toRadians(-90));
+        Pose loadingZone = new Pose(12, 107, Math.toRadians(-30));
 
 
         // Set starting pose
         follower.setPose(startPose);
 
         // Pedro 3 Path API: Paths replace PathChain completely
-        Path driveToGarden = curve(startPose, gardenControlPoint, garden).linear(startPose, garden);
-        Path collectFromGarden = line(garden, collectGarden).linear(garden, collectGarden);
-        Path leaveGarden = line(collectGarden, garden).linear(collectGarden, garden);
-        Path driveToShoot = curve(garden, gardenToShootControl, shootPose).linear(collectGarden, shootPose);
-        Path driveToFlower = line(shootPose, flower).linear(shootPose, flower);
-        Path flowerToShoot = line(flower, shootPose).linear(flower, shootPose);
+        Path shootToFlower = curve(startPose, controlForFlower, flower).linear(startPose, flower);
+        Path flowerToShoot2 = line(flower, shoot2).linear(flower, shoot2);
+        Path shoot2Tohive1 = line(shoot2, hive1).linear(shoot2, hive1);
+        Path hive1ToHive2 = line(hive1, hive2).linear(hive1, hive2);
+        Path hive2TOhive3 = line(hive2, hive3).linear(hive2, hive3);
+        Path hive3ToLoadingZone = line(hive3, loadingZone).linear(hive3, loadingZone);
 
 
         // Build the Ivy Autonomous Command Sequence
@@ -63,22 +64,15 @@ public class RedRight extends LinearOpMode {
                         instant(matchTimer::reset),
 
                         // Segment 1: Shoot preload and drive to garden and collect pollen
-                        waitMs(1500),
-                        follow(follower, driveToGarden),
-                        follow(follower, collectFromGarden),
-                        waitMs(500),
+
 
 
                         // Segment 2: Drive out of garden and back to shoot pose
-                        follow(follower, leaveGarden),
-                        follow(follower, driveToShoot),
-                        waitMs(1000),
+
 
 
                         // Segment 3: drive to the flower and collect pollen then drive back to the shoot pose
-                        follow(follower, driveToFlower),
-                        waitMs(1000),
-                        follow(follower, flowerToShoot),
+
 
 
                         // Save final pose for TeleOp
