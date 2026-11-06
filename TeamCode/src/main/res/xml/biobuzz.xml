@@ -7,9 +7,9 @@
         <LynxModule name="Expansion Hub 2" port="2">
             <!-- motors (make the names match code !!!!!!!!!!!!!) -->
             <goBILDA5202SeriesMotor name="intake"            port="0" />
-            <goBILDA5202SeriesMotor name="turretMotor"       port="1" />
+            <goBILDA5202SeriesMotor name="turretMotor"       port="3" />
             <goBILDA5202SeriesMotor name="shooterMotorLeft"  port="2" />
-            <goBILDA5202SeriesMotor name="shooterMotorRight" port="3" />
+            <goBILDA5202SeriesMotor name="shooterMotorRight" port="1" />
 
             <!-- Servos -->
 

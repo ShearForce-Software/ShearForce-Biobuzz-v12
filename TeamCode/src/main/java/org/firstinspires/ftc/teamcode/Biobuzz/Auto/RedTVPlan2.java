@@ -22,9 +22,10 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
 
-@Autonomous(name = "Flower Right", group = "summerPedro")
+@Autonomous(name = "redAudiencePlan2", group = "summerPedro")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
-public class Flower_right extends LinearOpMode {
+public class RedTVPlan2 extends LinearOpMode {
+    //For Sharing-plan-2
     private Follower follower;
     @Override
     public void runOpMode() {
@@ -32,51 +33,48 @@ public class Flower_right extends LinearOpMode {
 
         // Instantiate subsystems
         follower = Constants.create(hardwareMap);
-
         ElapsedTime matchTimer = new ElapsedTime();
-        //Flower left plan 1
+
         // Target Poses
-        Pose startPose = new Pose(25, 9, Math.toRadians(90));
-        Pose Pose1 = new Pose(49, 24.5, Math.toRadians(75));
-        Pose Pose2 = new Pose(10, 10, Math.toRadians(80));
-        Pose Pose3 = new Pose(37, 115, Math.toRadians(310));
-        Pose Pose4 = new Pose(14, 50, Math.toRadians(25));
-        Pose Pose5 = new Pose(37,115, Math.toRadians(310));
+        Pose startPose = new Pose(63, 135, Math.toRadians(-90));
+        Pose controlForFlower = new Pose(55.5, 100, Math.toRadians(90));
+        Pose flower = new Pose(48,135, Math.toRadians(90));
+        Pose shoot2 = new Pose(48, 120, Math.toRadians(-70));
+        Pose hive1 = new Pose(55, 95, Math.toRadians(-90));
+        Pose hive2 = new Pose (59, 61.5, Math.toRadians(-90));
+        Pose hive3 = new Pose (59, 103, Math.toRadians(-90));
+        Pose loadingZone = new Pose(12, 107, Math.toRadians(-30));
+
 
         // Set starting pose
         follower.setPose(startPose);
 
         // Pedro 3 Path API: Paths replace PathChain completely
-        Path driveToShoot1 = line(startPose, Pose1).linear(startPose, Pose1);
-        Path driveToShoot2 = line(Pose1, Pose2).linear(Pose1, Pose2);
-        Path driveToShoot3   = line(Pose2, Pose3).linear(Pose2, Pose3);
-        Path driveToShoot4   = line(Pose3, Pose4).linear(Pose3, Pose4);
-        Path driveToShoot5   = line(Pose4, Pose5).linear(Pose4, Pose5);
+        Path shootToFlower = curve(startPose, controlForFlower, flower).linear(startPose, flower);
+        Path flowerToShoot2 = line(flower, shoot2).linear(flower, shoot2);
+        Path shoot2Tohive1 = line(shoot2, hive1).linear(shoot2, hive1);
+        Path hive1ToHive2 = line(hive1, hive2).linear(hive1, hive2);
+        Path hive2TOhive3 = line(hive2, hive3).linear(hive2, hive3);
+        Path hive3ToLoadingZone = line(hive3, loadingZone).linear(hive3, loadingZone);
+
 
         // Build the Ivy Autonomous Command Sequence
         schedule(
                 sequential(
                         instant(matchTimer::reset),
-                        // Spin up the flywheels
-                        //shooter.startFlywheelsCommand(),
 
-                        // Segment 1: Drive to Shoot 1 & Shoot
-                        follow(follower, driveToShoot1),
-                        //shooter.firePositionCommand(),
-                        waitMs(1000),
-                        // Segment 2: Drive to Shoot 2 & Shoot
-                        follow(follower, driveToShoot2),
-                        //shooter.firePositionCommand(),
-                        waitMs(500),
-                        // Segment 3: Park & stop flywheels
-                        follow(follower, driveToShoot3),
-                        //shooter.stopFlywheelsCommand(),
-                        waitMs(1000),
-                        follow(follower, driveToShoot4),
-                        waitMs(500),
+                        // Segment 1: Shoot preload and drive to garden and collect pollen
 
-                        follow(follower, driveToShoot5),
-                        waitMs(1000),
+
+
+                        // Segment 2: Drive out of garden and back to shoot pose
+
+
+
+                        // Segment 3: drive to the flower and collect pollen then drive back to the shoot pose
+
+
+
                         // Save final pose for TeleOp
                         instant(() -> MatchConfig.currentPose = follower.pose())
                 )

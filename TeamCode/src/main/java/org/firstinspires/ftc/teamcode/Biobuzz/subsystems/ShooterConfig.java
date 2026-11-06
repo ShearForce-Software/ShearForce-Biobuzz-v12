@@ -26,6 +26,9 @@ public class ShooterConfig {
 
     public static double SHOOTER_SERVO_REST = 1.0;
     public static double SHOOTER_SERVO_SHOOT = 0.8;
+    public static double SHOOTER_HOOD_MIN = 0.4;
+    public static double SHOOTER_HOOD_MAX = 0.6;
+
 
     public static double DEFAULT_HIGH_VELOCITY = 1110.0;
     public static double DEFAULT_LOW_VELOCITY = 500.0;

@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
 
@@ -47,6 +48,10 @@ public class ShooterTuningOpMode extends LinearOpMode {
     private boolean lastLeftStickDown = false;
     private boolean lastRightStickUp = false;
     private boolean lastRightStickDown = false;
+    private boolean lastLeftStickUp2 = false;
+    private boolean lastLeftStickDown2 = false;
+    private boolean lastRightStickUp2 = false;
+    private boolean lastRightStickDown2 = false;
 
     private final double[] stepSizes = {10.0, 1.0, 0.1, 0.001, 0.0001};
     private int stepIndex = 1;
@@ -167,6 +172,39 @@ public class ShooterTuningOpMode extends LinearOpMode {
             lastRightStickUp = currentRightStickUp;
             lastRightStickDown = currentRightStickDown;
 
+
+            // Adjust Servo hood MAX position with Left Stick Y and MIN position with Right Stick Y (0.1 step increments)
+            // Pushing UP on stick Y (negative value) increments position by +0.1
+            // Pushing DOWN on stick Y (positive value) decrements position by -0.1
+            boolean currentLeftStickUp2 = gamepad2.left_stick_y < -0.1;
+            boolean currentLeftStickDown2 = gamepad2.left_stick_y > 0.1;
+
+            if (currentLeftStickUp2 && !lastLeftStickUp2) {
+                ShooterConfig.SHOOTER_HOOD_MAX = Range.clip(ShooterConfig.SHOOTER_HOOD_MAX + 0.1, 0.0, 1.0);
+                shooter.hoodMaxPosition();
+
+            } else if (currentLeftStickDown2 && !lastLeftStickDown2) {
+                ShooterConfig.SHOOTER_HOOD_MAX = Range.clip(ShooterConfig.SHOOTER_HOOD_MAX - 0.1, 0.0, 1.0);
+                shooter.hoodMaxPosition();
+            }
+            lastLeftStickUp2 = currentLeftStickUp;
+            lastLeftStickDown2 = currentLeftStickDown;
+
+            // Tune Depollinator DOWN Position using Right Stick Y (0.05 step increments)
+            boolean currentRightStickUp2 = gamepad2.right_stick_y < -0.1;
+            boolean currentRightStickDown2 = gamepad2.right_stick_y > 0.1;
+
+            if (currentRightStickUp2 && !lastRightStickUp2) {
+                ShooterConfig.SHOOTER_HOOD_MIN = Range.clip(ShooterConfig.SHOOTER_HOOD_MIN + 0.1, 0.0, 1.0);
+                shooter.hoodMinPosition();
+            } else if (currentRightStickDown2 && !lastRightStickDown2) {
+                ShooterConfig.SHOOTER_HOOD_MIN = Range.clip(ShooterConfig.SHOOTER_HOOD_MIN - 0.1, 0.0, 1.0);
+                shooter.hoodMinPosition();
+
+            }
+            lastRightStickUp2 = currentRightStickUp;
+            lastRightStickDown2 = currentRightStickDown;
+
             // Format "At Speed" message with last time to speed / recovery duration
             StringBuilder atSpeedMsg = new StringBuilder(shooter.isAtSpeed() ? "TRUE" : "FALSE");
             if (shooter.getLastTimeToSpeed() >= 0) {
@@ -198,6 +236,7 @@ public class ShooterTuningOpMode extends LinearOpMode {
             telemetry.addData("At Speed", atSpeedMsg.toString());
             telemetry.addData("Flywheels Running", flywheelsMsg.toString());
             telemetry.addData("Servo Positions", "Shoot: %.2f | Rest: %.2f", ShooterConfig.SHOOTER_SERVO_SHOOT, ShooterConfig.SHOOTER_SERVO_REST);
+            telemetry.addData("Servo Hood Positions", "MAX: %.2f | MIN: %.2f", ShooterConfig.SHOOTER_HOOD_MAX, ShooterConfig.SHOOTER_HOOD_MIN);
             telemetry.addData("PIDF ", "P: %.4f (DPAD UP/DOWN)", ShooterConfig.P);
             telemetry.addData("PIDF ", "F: %.2f (DPAD LEFT/RIGHT)", ShooterConfig.F);
             telemetry.addData("Step Size", "%.4f (SQUARE)", stepSizes[stepIndex]);
