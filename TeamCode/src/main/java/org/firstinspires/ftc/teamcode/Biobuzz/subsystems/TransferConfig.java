@@ -11,7 +11,7 @@ public class TransferConfig {
 
     // Hardware Map Device Names
     public static String SERVO_NAME = "transferServo";
-    public static String ENCODER_NAME = "rightFront_centerOdometry";
+    public static String ENCODER_NAME = "leftFront_leftOdometry";
     public static String COLOR_SENSOR_TOP_NAME = "transferColorTop";
     public static String COLOR_SENSOR_LEFT_NAME = "transferColorLeft";
     public static String COLOR_SENSOR_RIGHT_NAME = "transferColorRight";

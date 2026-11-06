@@ -18,6 +18,7 @@ public class ShooterSubsystem {
     private final DcMotorEx shooterLeft;
     private final DcMotorEx shooterRight;
     private final Servo shooterServo;
+    private final Servo shooterHood;
 
     // 1750 RPM = 816.7 ticks/sec for goBilda 1:1 Yellow Jacket motors (28 CPR)
     public double target_velocity_ticks = 1110.0;
@@ -42,6 +43,7 @@ public class ShooterSubsystem {
         shooterLeft = hardwareMap.get(DcMotorEx.class, "shooterMotorLeft");
         shooterRight = hardwareMap.get(DcMotorEx.class, "shooterMotorRight");
         shooterServo = hardwareMap.get(Servo.class, "shooterServo");
+        shooterHood = hardwareMap.get(Servo.class, "shooterHood");
 
         // Dual flywheels face opposite directions
         shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -182,6 +184,14 @@ public class ShooterSubsystem {
 
     public void restPosition() {
         shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_REST);
+    }
+
+    public void hoodMaxPosition() {
+        shooterHood.setPosition(ShooterConfig.SHOOTER_HOOD_MAX);
+    }
+
+    public void hoodMinPosition() {
+        shooterHood.setPosition(ShooterConfig.SHOOTER_HOOD_MIN);
     }
 
     public double getTargetVelocity() {
