@@ -31,6 +31,7 @@
             <Servo name="depollinatorServo"               port="0" />
             <ContinuousRotationServo name="transferServo" port="1" />
             <Servo name="shooterServo"                    port="2" />
+            <Servo name="shooterHood"                    port="3" />
 
             <!-- I2C Digital Sensors -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
