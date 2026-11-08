@@ -35,7 +35,7 @@
 
             <!-- I2C Digital Sensors -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
-            <goBILDAPinpoint name="pinpoint" port="0" bus="1"/>
+            <goBILDAPinpoint name="pinpoint" port="1" bus="1"/>
             <RevColorSensorV3 name="intakeColorRampBack" port="0" bus="0"/>
             <RevColorSensorV3 name="transferColorLeft" port="0" bus="2"/>
             <RevColorSensorV3 name="intakeColorRampFront" port="0" bus="3"/>

@@ -68,13 +68,15 @@ public class BiobuzzTeleOp extends OpMode {
         transfer = new TransferSubsystem(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
         camera = new CameraSubsystem(hardwareMap);
-        camera.queryCameraControlBoundsAndApply();
+        //camera.queryCameraControlBoundsAndApply();
 
         // Restore exact ending coordinate Pose from Autonomous
         follower.setPose(MatchConfig.currentPose);
+        intake.depollinatorUp();
+
 
         // Pre-spool flywheels for TeleOp readiness as requested
-        shooter.startFlywheels();
+        //shooter.startFlywheels();
     }
 
     @Override
@@ -83,6 +85,7 @@ public class BiobuzzTeleOp extends OpMode {
         // =========================================================================
         // GAMEPAD 1: DRIVER CONTROLS
         // =========================================================================
+
 
         // Joystick inputs (invert y-axis for FTC standard forward = negative)
         double forward = -gamepad1.left_stick_y;
@@ -149,17 +152,19 @@ public class BiobuzzTeleOp extends OpMode {
         // GAMEPAD 2: OPERATOR MECHANISM CONTROLS
         // =========================================================================
 
+
         // 1. Shooter Flywheels Toggle (Button Y / Triangle)
         if (gamepad2.yWasPressed() || gamepad2.triangleWasPressed()) {
             if (shooter.isRunning()) {
                 shooter.stopFlywheels();
-            } else {
+            }
+            else {
                 shooter.startFlywheels();
             }
         }
 
         // 2. Shoot Command (Button A / Cross OR Right Trigger)
-        if (gamepad2.a || gamepad2.cross || gamepad2.right_trigger > 0.1) {
+        if (gamepad2.aWasPressed() || gamepad2.crossWasPressed() || gamepad2.right_trigger > 0.1) {
             shooter.firePosition();
         } else {
             shooter.restPosition();
