@@ -73,7 +73,7 @@ public class BiobuzzTeleOp extends OpMode {
         // Restore exact ending coordinate Pose from Autonomous
         follower.setPose(MatchConfig.currentPose);
         intake.depollinatorUp();
-
+        shooter.hoodMinPosition();
 
         // Pre-spool flywheels for TeleOp readiness as requested
         //shooter.startFlywheels();
@@ -85,7 +85,6 @@ public class BiobuzzTeleOp extends OpMode {
         // =========================================================================
         // GAMEPAD 1: DRIVER CONTROLS
         // =========================================================================
-
 
         // Joystick inputs (invert y-axis for FTC standard forward = negative)
         double forward = -gamepad1.left_stick_y;
@@ -152,19 +151,17 @@ public class BiobuzzTeleOp extends OpMode {
         // GAMEPAD 2: OPERATOR MECHANISM CONTROLS
         // =========================================================================
 
-
         // 1. Shooter Flywheels Toggle (Button Y / Triangle)
         if (gamepad2.yWasPressed() || gamepad2.triangleWasPressed()) {
             if (shooter.isRunning()) {
                 shooter.stopFlywheels();
-            }
-            else {
+            } else {
                 shooter.startFlywheels();
             }
         }
 
         // 2. Shoot Command (Button A / Cross OR Right Trigger)
-        if (gamepad2.aWasPressed() || gamepad2.crossWasPressed() || gamepad2.right_trigger > 0.1) {
+        if (gamepad2.a || gamepad2.cross || gamepad2.right_trigger > 0.1) {
             shooter.firePosition();
         } else {
             shooter.restPosition();
@@ -271,8 +268,11 @@ public class BiobuzzTeleOp extends OpMode {
                 transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_LEFT)));
         telemetry.addData("Transfer Right Slot", String.format(Locale.US, "Present: %s | Color: %s",
                 transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_RIGHT)));
-        telemetry.addData("Transfer Bottom Slot", String.format(Locale.US, "Present: %s | Color: %s",
-                transfer.isSlotOccupied(TransferSubsystem.Slot.BOTTOM) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.Slot.BOTTOM)));
+        telemetry.addData("Transfer Bottom Back Slot", String.format(Locale.US, "Present: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_BACK)));
+
+        telemetry.addData("Transfer Bottom Front Slot", String.format(Locale.US, "Present: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_FRONT)));
 
         // --- Controls Summary ---
         telemetry.addLine("=== Controls Summary ===");
