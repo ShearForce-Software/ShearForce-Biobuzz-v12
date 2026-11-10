@@ -68,13 +68,15 @@ public class BiobuzzTeleOp extends OpMode {
         transfer = new TransferSubsystem(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
         camera = new CameraSubsystem(hardwareMap);
-        camera.queryCameraControlBoundsAndApply();
+        //camera.queryCameraControlBoundsAndApply();
 
         // Restore exact ending coordinate Pose from Autonomous
         follower.setPose(MatchConfig.currentPose);
+        intake.depollinatorUp();
+        shooter.hoodMinPosition();
 
         // Pre-spool flywheels for TeleOp readiness as requested
-        shooter.startFlywheels();
+        //shooter.startFlywheels();
     }
 
     @Override
@@ -266,8 +268,11 @@ public class BiobuzzTeleOp extends OpMode {
                 transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_LEFT)));
         telemetry.addData("Transfer Right Slot", String.format(Locale.US, "Present: %s | Color: %s",
                 transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_RIGHT)));
-        telemetry.addData("Transfer Bottom Slot", String.format(Locale.US, "Present: %s | Color: %s",
-                transfer.isSlotOccupied(TransferSubsystem.Slot.BOTTOM) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.Slot.BOTTOM)));
+        telemetry.addData("Transfer Bottom Back Slot", String.format(Locale.US, "Present: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_BACK)));
+
+        telemetry.addData("Transfer Bottom Front Slot", String.format(Locale.US, "Present: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_FRONT)));
 
         // --- Controls Summary ---
         telemetry.addLine("=== Controls Summary ===");

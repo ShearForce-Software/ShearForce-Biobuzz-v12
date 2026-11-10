@@ -85,7 +85,7 @@ public class ShooterTuningOpMode extends LinearOpMode {
 
         // Start flywheels initially
         shooter.startFlywheels();
-
+        shooter.hoodMinPosition();
         while (opModeIsActive()) {
             // Re-apply PIDF gains and target velocity if modified live on FTC Dashboard
             shooter.update();

@@ -46,8 +46,8 @@ public class ShooterSubsystem {
         shooterHood = hardwareMap.get(Servo.class, "shooterHood");
 
         // Dual flywheels face opposite directions
-        shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooterRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Seed initial PIDF gains from ShooterConfig
         lastP = ShooterConfig.P;
