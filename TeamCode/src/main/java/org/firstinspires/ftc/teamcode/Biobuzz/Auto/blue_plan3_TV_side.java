@@ -73,7 +73,7 @@ public class blue_plan3_TV_side extends LinearOpMode {
                        follow(follower, shootPath),
                         waitMs(1000),
                         follow(follower, collectFlowerPath),
-                        waitMs(500),
+                        waitMs(5300),
 
                         // Segment 3: shoot & Park
                         follow(follower, shootPath1),
