@@ -197,6 +197,7 @@ public class TransferSubsystem {
             if (getRawTicks() >= targetEncoderTicks) {
                 stop();
                 return true;
+
             }
         } else {
             if (getRawTicks() <= targetEncoderTicks) {
