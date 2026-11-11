@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
 
@@ -92,9 +91,9 @@ public class ShooterTuningOpMode extends LinearOpMode {
 
             // Feed ball control: Cross button or Right Trigger
             if (gamepad1.right_trigger > 0.1) {
-                shooter.firePosition();
+                shooter.setPollenPosition();
             } else {
-                shooter.restPosition();
+                shooter.setNectarPosition();
             }
 
             // Circle button toggles flywheels on/off
@@ -154,9 +153,9 @@ public class ShooterTuningOpMode extends LinearOpMode {
             boolean currentLeftStickDown = gamepad1.left_stick_y > 0.1;
 
             if (currentLeftStickUp && !lastLeftStickUp) {
-                ShooterConfig.SHOOTER_SERVO_SHOOT = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT + 0.1, 0.0, 1.0);
+                ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION + 0.1, 0.0, 1.0);
             } else if (currentLeftStickDown && !lastLeftStickDown) {
-                ShooterConfig.SHOOTER_SERVO_SHOOT = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT - 0.1, 0.0, 1.0);
+                ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION - 0.1, 0.0, 1.0);
             }
             lastLeftStickUp = currentLeftStickUp;
             lastLeftStickDown = currentLeftStickDown;
@@ -165,9 +164,9 @@ public class ShooterTuningOpMode extends LinearOpMode {
             boolean currentRightStickDown = gamepad1.right_stick_y > 0.1;
 
             if (currentRightStickUp && !lastRightStickUp) {
-                ShooterConfig.SHOOTER_SERVO_REST = Range.clip(ShooterConfig.SHOOTER_SERVO_REST + 0.1, 0.0, 1.0);
+                ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION + 0.1, 0.0, 1.0);
             } else if (currentRightStickDown && !lastRightStickDown) {
-                ShooterConfig.SHOOTER_SERVO_REST = Range.clip(ShooterConfig.SHOOTER_SERVO_REST - 0.1, 0.0, 1.0);
+                ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION = Range.clip(ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION - 0.1, 0.0, 1.0);
             }
             lastRightStickUp = currentRightStickUp;
             lastRightStickDown = currentRightStickDown;
@@ -235,7 +234,7 @@ public class ShooterTuningOpMode extends LinearOpMode {
             telemetry.addData("Velocity Error", "%.2f ticks/sec (%.2f RPM)", currentVelocityError, currentRPMError);
             telemetry.addData("At Speed", atSpeedMsg.toString());
             telemetry.addData("Flywheels Running", flywheelsMsg.toString());
-            telemetry.addData("Servo Positions", "Shoot: %.2f | Rest: %.2f", ShooterConfig.SHOOTER_SERVO_SHOOT, ShooterConfig.SHOOTER_SERVO_REST);
+            telemetry.addData("Servo Positions", "Shoot: %.2f | Rest: %.2f", ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION, ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION);
             telemetry.addData("Servo Hood Positions", "MAX: %.2f | MIN: %.2f", ShooterConfig.SHOOTER_HOOD_MAX, ShooterConfig.SHOOTER_HOOD_MIN);
             telemetry.addData("PIDF ", "P: %.4f (DPAD UP/DOWN)", ShooterConfig.P);
             telemetry.addData("PIDF ", "F: %.2f (DPAD LEFT/RIGHT)", ShooterConfig.F);

@@ -34,6 +34,8 @@ public class TransferConfig {
     public static float YELLOW_RED_MIN_RATIO = 0.30f;   // Min red ratio for Yellow ball
     public static float YELLOW_GREEN_MIN_RATIO = 0.30f; // Min green ratio for Yellow ball
 
+    public static boolean AUTO_TRANSFER = true;
+
     // Private constructor prevents instantiation
     private TransferConfig() {}
 }

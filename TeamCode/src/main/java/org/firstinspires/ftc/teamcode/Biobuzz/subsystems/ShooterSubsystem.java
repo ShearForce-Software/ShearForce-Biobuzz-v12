@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 public class ShooterSubsystem {
     private final DcMotorEx shooterLeft;
@@ -65,7 +66,7 @@ public class ShooterSubsystem {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT); // Coasting prevents gear wear
         }
 
-        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_REST);
+        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION);
     }
 
     /**
@@ -178,12 +179,16 @@ public class ShooterSubsystem {
                 Math.abs(shooterRight.getVelocity() - target_velocity_ticks) < ShooterConfig.VELOCITY_TOLERANCE;
     }
 
-    public void firePosition() {
-        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_SHOOT);
+    public void setPollenPosition() {
+        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION);
     }
 
-    public void restPosition() {
-        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_REST);
+    public void setNectarPosition() {
+        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION);
+    }
+
+    public boolean isPollenPosition() {
+        return shooterServo.getPosition() == ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION;
     }
 
     public void hoodMaxPosition() {
@@ -194,6 +199,14 @@ public class ShooterSubsystem {
         shooterHood.setPosition(ShooterConfig.SHOOTER_HOOD_MIN);
     }
 
+    public void setHoodPosition(double position) {
+        double hoodPosition = Range.clip(position, ShooterConfig.SHOOTER_HOOD_MIN, ShooterConfig.SHOOTER_HOOD_MAX);
+        shooterHood.setPosition(hoodPosition);
+    }
+
+    public double getHoodPosition() {
+        return shooterHood.getPosition();
+    }
     public double getTargetVelocity() {
         return target_velocity_ticks;
     }
@@ -224,9 +237,9 @@ public class ShooterSubsystem {
         return sequential(
                 instant(this::startFlywheels),
                 waitUntil(this::isAtSpeed),
-                instant(this::firePosition),
+                instant(this::setPollenPosition),
                 waitMs(250),
-                instant(this::restPosition)
+                instant(this::setNectarPosition)
         );
     }
 

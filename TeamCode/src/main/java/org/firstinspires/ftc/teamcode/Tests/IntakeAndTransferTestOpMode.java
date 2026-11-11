@@ -153,9 +153,9 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
 
             // Advance 1/4 full rotation (1 slot) via Gamepad 2 Right / Left Bumpers
             if (gamepad2.rightBumperWasPressed()) {
-                transferSubsystem.advance1SlotForward();
+                transferSubsystem.Shoot1Ball();
             } else if (gamepad2.leftBumperWasPressed()) {
-                transferSubsystem.advance1SlotReverse();
+                transferSubsystem.Load1Ball();
             }
 
             // Reset Through Bore Encoder Position via Gamepad 2 Triangle

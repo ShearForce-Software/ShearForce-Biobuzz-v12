@@ -77,9 +77,9 @@ public class TransferTestOpMode extends LinearOpMode {
 
             // Advance 1/4 full rotation (1 slot) via Right / Left Bumpers
             if (gamepad1.rightBumperWasPressed()) {
-                transfer.advance1SlotForward();
+                transfer.Shoot1Ball();
             } else if (gamepad1.leftBumperWasPressed()) {
-                transfer.advance1SlotReverse();
+                transfer.Load1Ball();
             }
 
            /* if (gamepad1.optionsWasPressed() && gamepad1.circleWasPressed()) {

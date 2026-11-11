@@ -9,8 +9,8 @@ import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.pedropathing.math.Velocity;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Biobuzz.pedro.Constants;
@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.CameraSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
 import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 
@@ -59,8 +60,8 @@ public class BiobuzzTeleOp extends LinearOpMode {
     // Operator States
     private boolean intakeOn = false;
 
-        // Pre-spool flywheels for TeleOp readiness as requested
-        //shooter.startFlywheels();
+    private boolean transferAssumedFull = false;
+
 
 
     @Override
@@ -85,7 +86,14 @@ public class BiobuzzTeleOp extends LinearOpMode {
         // =========================================================================
         waitForStart();
 
+        // Pre-spool flywheels for TeleOp readiness as requested
+        shooter.startFlywheels();
+
         while (opModeIsActive()) {
+            // Update subsystem states
+            follower.update();
+            shooter.update();
+            transfer.update();
 
             // Joystick inputs (invert y-axis for FTC standard forward = negative)
             double forward = -gamepad1.left_stick_y;
@@ -152,78 +160,118 @@ public class BiobuzzTeleOp extends LinearOpMode {
             // GAMEPAD 2: OPERATOR MECHANISM CONTROLS
             // =========================================================================
 
-            // 1. Shooter Flywheels Toggle (Button Y / Triangle)
-            if (gamepad2.yWasPressed() || gamepad2.triangleWasPressed()) {
-                if (shooter.isRunning()) {
-                    shooter.stopFlywheels();
+            // Shooter Flywheels Toggle (Button Y / Triangle)
+            if (gamepad2.triangleWasPressed()) {
+                // share + triangle = toggle auto transfer system on/off
+                if (gamepad2.share) {
+                    if (TransferConfig.AUTO_TRANSFER) {
+                        TransferConfig.AUTO_TRANSFER = false;
+                    }
+                    else {
+                        TransferConfig.AUTO_TRANSFER = true;
+                    }
+                }
+                // triangle by itself means start/stop shooter flywheels
+                else {
+                    if (shooter.isRunning()) {
+                        shooter.stopFlywheels();
+                    } else {
+                        shooter.startFlywheels();
+                    }
+                }
+            }
+
+            // SHOOT BALLS
+            if (gamepad2.leftBumperWasPressed()) {
+                //transfer.Shoot1Ball();
+                transfer.ShootAllBalls();
+                transferAssumedFull = false;
+            }
+
+            // Shooter Hood Position uses DPAD LEFT/RIGHT
+            // Shooter Pollen/Nectar Servo Position uses DPAD LEFT/RIGHT + Options
+            if (gamepad2.dpadLeftWasPressed()) {
+                if (!gamepad2.options) {
+                    shooter.setHoodPosition(shooter.getHoodPosition() - 0.1);
                 }
                 else {
-                    shooter.startFlywheels();
+                    shooter.setPollenPosition();
+                }
+            } else if (gamepad2.dpadRightWasPressed()) {
+                if (!gamepad2.options) {
+                    shooter.setHoodPosition(shooter.getHoodPosition() + 0.1);
+                }
+                else {
+                    shooter.setNectarPosition();
                 }
             }
 
-            // 2. Shoot Command (Button A / Cross OR Right Trigger)
-            //if (gamepad2.a || gamepad2.cross || gamepad2.right_trigger > 0.1) {
-               // shooter.firePosition();
-          //  } else {
-              //  shooter.restPosition();
-           // }
-
-            // 3. Intake On/Off Toggle (Button X / Square)
-            if (gamepad2.cross || gamepad2.right_trigger > 0.1) {
-                intake.turnOn();
-            } else if (gamepad2.square || gamepad2.left_trigger > 0.1) {
-                intake.reverse();
-            } else if (gamepad2.circle) {
-                intake.turnOff();
-            }
-
-            if (intake.getVelocity() > 0 && transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK)){
-                transfer.advance1SlotReverse();
-            }
-            /*
-            if (gamepad2.xWasPressed() || gamepad2.squareWasPressed()) {
-                intakeOn = !intakeOn;
-                if (intakeOn == true) {
+            // Intake Subsystem
+            if (gamepad2.crossWasPressed()) {
+                if (!gamepad2.options) {
                     intake.turnOn();
                 }
-                else {intake.turnOff();
-
+            } else if (gamepad2.squareWasPressed()) {
+                intake.reverse();
+            } else if (gamepad2.circleWasPressed()) {
+                if (!gamepad2.options) {
+                    intake.turnOff();
                 }
             }
 
-
-            // Intake Motor Execution (Eject takes priority over Intake On)
-            if (gamepad2.left_trigger > 0.1 || gamepad2.leftBumperWasPressed()) {
-                intake.reverse();
-            } else if (intakeOn) {
-                intake.turnOn();
-            } else {
-                intake.turnOff();
+            // if Auto Transfer Logic enabled (toggle on/off by using SHARE + TRIANGLE)
+            if (TransferConfig.AUTO_TRANSFER) {
+                // if intake is turned on (bringing in new balls)
+                if (intake.getVelocity() > 0) {
+                    // if transfer is not already in progress
+                    if (!transfer.IsBusy()) {
+                        // if a ball is about to be in the bottom slot
+                        if (transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) || intake.isRampFrontBallPresent() || intake.isRampBackBallPresent()) {
+                            // if intake is already full then we are controlling too many balls!!!
+                            if (transferAssumedFull) {
+                                transfer.StowBalls();
+                                // spit out any extra balls
+                                intake.reverse();
+                            } else {
+                                // if Top, Left, and Right slots already reporting full
+                                if (transfer.isSlotOccupied(TransferSubsystem.SENSOR_TOP) && transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) && transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT)) {
+                                    transferAssumedFull = true;
+                                }
+                                transfer.Load1Ball();
+                            }
+                        } else if (transferAssumedFull) {
+                            transfer.StowBalls();
+                            // spit out anything else not being detected yet
+                            intake.reverse();
+                        }
+                    }
+                }
+                // else if out-taking and velocity has reached at least 80% of target velocity and no more extra balls are being detected
+                else if ((intake.getVelocity() < -intake.targetVelocityTicks * 0.8) &&
+                        !(transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) || intake.isRampFrontBallPresent() || intake.isRampBackBallPresent()) ) {
+                    // assume it is safe to turn off the intake subsystem
+                    intake.turnOff();
+                }
             }
-            */
 
+            // Manual Transfer / Load
+            if (gamepad2.rightBumperWasPressed()) {
+                if (!gamepad2.share) {
+                    transfer.Load1Ball();
+                }
+                else {
+                    transfer.StowBalls();
+                }
+            }
 
-            // 4. Depollinator Servo UP / DOWN
+            // Depollinator Servo UP / DOWN
             if (gamepad2.dpadUpWasPressed()) {
                 intake.depollinatorUp();
             } else if (gamepad2.dpadDownWasPressed()) {
                 intake.depollinatorDown();
             }
 
-            // 5. Transfer Advance 1 Slot Forward (Right Bumper)
-            if (gamepad2.rightBumperWasPressed()) {
-                transfer.advance1SlotReverse();
 
-            } else if (gamepad2.leftBumperWasPressed()) {
-               transfer.advance1SlotForward();
-            }
-
-
-        // Update subsystem state loops
-            follower.update();
-            shooter.update();
-            transfer.update();
 
             // =========================================================================
             // TELEMETRY OUTPUTS
@@ -255,12 +303,14 @@ public class BiobuzzTeleOp extends LinearOpMode {
             telemetry.addLine("=== Subsystems Key Data ===");
             telemetry.addData("Shooter Flywheels", String.format(Locale.US, "Status: %s | Target: %.0f | Actual: %.1f ticks/s",
                     shooter.isRunning() ? "RUNNING" : "STOPPED", shooter.getTargetVelocity(), shooter.getAverageVelocity()));
+            telemetry.addData("Shooter Servos", String.format(Locale.US, "Mode: %s | Hood: %.0f ",
+                    shooter.isPollenPosition() ? "POLLEN" : "NECTAR", shooter.getHoodPosition()));
             telemetry.addData("Intake Motor", String.format(Locale.US, "Status: %s | Target: %.0f | Actual: %.1f ticks/s",
                     intakeOn ? "ON" : "OFF", intake.targetVelocityTicks, intake.getVelocity()));
-            telemetry.addData("Transfer Position", String.format(Locale.US, "Power: %.2f | Raw Ticks: %.0f | Rotations: %.3f rev | Angle: %.1f°",
-                    transfer.getPower(), transfer.getRawTicks(), transfer.getRotations(), transfer.getDegrees()));
-            telemetry.addData("Transfer Velocity", String.format(Locale.US, "%.1f ticks/s (%.1f RPM)",
-                    transfer.getVelocityTicksPerSec(), transfer.getVelocityRPM()));
+            telemetry.addData("Transfer System", String.format(Locale.US, "Power: %.2f | Raw Ticks: %.0f ",
+                    transfer.getPower(), transfer.getRawTicks()));
+            telemetry.addData("AUTO TRANSFER", String.format(Locale.US, "Mode: %s ",
+                    TransferConfig.AUTO_TRANSFER ? "ENABLED" : "DISABLED"));
 
             // --- Controlled Ball Totals (Pollen vs Nectar) & Sensor Readings ---
             int totalBalls = 0;
@@ -270,42 +320,62 @@ public class BiobuzzTeleOp extends LinearOpMode {
             TransferSubsystem.BallColor[] slotColors = transfer.getSlotColors();
             for (TransferSubsystem.BallColor color : slotColors) {
                 if (color == TransferSubsystem.BallColor.YELLOW) {
-                    totalPollen++;
-                    totalBalls++;
+                    ++totalPollen;
+                    ++totalBalls;
                 } else if (color == TransferSubsystem.BallColor.RED || color == TransferSubsystem.BallColor.BLUE) {
-                    totalNectar++;
-                    totalBalls++;
+                    ++totalNectar;
+                    ++totalBalls;
                 } else if (color != TransferSubsystem.BallColor.NONE && color != TransferSubsystem.BallColor.UNKNOWN) {
-                    totalBalls++;
+                    ++totalBalls;
                 }
             }
 
+            // Calculate distances
+            double topDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_TOP);
+            String topDistStr = (topDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", topDist);
+            double leftDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_LEFT);
+            String leftDistStr = (leftDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", leftDist);
+            double rightDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_RIGHT);
+            String rightDistStr = (rightDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rightDist);
+            double bbDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_BACK);
+            String bbDistStr = (bbDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bbDist);
+            double bfDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_FRONT);
+            String bfDistStr = (bfDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bfDist);
+            double rampBackDist = intake.getRampBackDistanceMm();
+            String rampBackDistStr = (rampBackDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rampBackDist);
+            double rampFrontDist = intake.getRampFrontDistanceMm();
+            String rampFrontDistStr = (rampFrontDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rampFrontDist);
+
+
             telemetry.addLine("=== Color & Distance Sensors ===");
-            telemetry.addData("Controlled Elements", String.format(Locale.US, "Total Balls: %d/4 | Pollen (Yellow): %d | Nectar (Red/Blue): %d",
+            telemetry.addData("Total", String.format(Locale.US, "Balls: %d/4 | Pollen: %d | Nectar: %d",
                     totalBalls, totalPollen, totalNectar));
 
-            telemetry.addData("Intake Ramp Back", String.format(Locale.US, "Present: %s | Color: %s",
-                    intake.isRampBackBallPresent() ? "YES" : "NO ", intake.detectRampBackColor()));
-            telemetry.addData("Intake Ramp Front", String.format(Locale.US, "Present: %s | Color: %s",
-                    intake.isRampFrontBallPresent() ? "YES" : "NO ", intake.detectRampFrontColor()));
+            telemetry.addData("Ramp Back   -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                    intake.isRampBackBallPresent() ? "YES" : "NO ", rampBackDistStr, intake.detectRampBackColor()));
+            telemetry.addData("Ramp Front  -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                    intake.isRampFrontBallPresent() ? "YES" : "NO ", rampFrontDistStr, intake.detectRampFrontColor()));
+            telemetry.addData("Bottom Back -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK) ? "YES" : "NO ", bbDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_BACK)));
+            telemetry.addData("Bottom Front-", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) ? "YES" : "NO ", bfDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_FRONT)));
 
-            telemetry.addData("Transfer Top Slot", String.format(Locale.US, "Present: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_TOP) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_TOP)));
-            telemetry.addData("Transfer Left Slot", String.format(Locale.US, "Present: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_LEFT)));
-            telemetry.addData("Transfer Right Slot", String.format(Locale.US, "Present: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_RIGHT)));
-            telemetry.addData("Transfer Bottom Back Slot", String.format(Locale.US, "Present: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_BACK)));
-
-            telemetry.addData("Transfer Bottom Front Slot", String.format(Locale.US, "Present: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) ? "YES" : "NO ", transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_FRONT)));
+            telemetry.addData("Top Slot    -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_TOP) ? "YES" : "NO ", topDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_TOP)));
+            telemetry.addData("Left Slot   -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) ? "YES" : "NO ", leftDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_LEFT)));
+            telemetry.addData("Right Slot  -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT) ? "YES" : "NO ", rightDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_RIGHT)));
 
             // --- Controls Summary ---
             telemetry.addLine("=== Controls Summary ===");
-            telemetry.addLine("G1 (Driver): Joysticks = Field Drive | Cross (A) = Hold Mode | Circle (B) = Vision Correction");
-            telemetry.addLine("G2 (Operator): Triangle (Y) = Flywheels | RT/Cross = Shoot | Square (X) = Intake | LT = Eject");
-            telemetry.addLine("G2 (Operator): D-Pad Up/Down = Depollinator UP/DOWN | Right Bumper = Advance 1 Slot");
+            telemetry.addLine("G1: Joysticks = Field   | X-Cross = Hold Mode    | Circle = Vision Correct");
+            telemetry.addLine("G2: Left Bumper = Shoot | DPAD Left/Right = Hood | Triangle = Flywheels");
+            telemetry.addLine("G2: X-Cross = Intake ON | Circle = Intake OFF    | Square = EJECT");
+            telemetry.addLine("G2: D-Pad Up/Down = Depollinator UP/DOWN         | Right Bumper = 1 Slot Load");
+            telemetry.addLine("G2: Right Bumper + SHARE = 1/2 Slot Load (STOW)");
+            telemetry.addLine("G2: Triangle + SHARE = Auto Transfer MODE Toggle");
+            telemetry.addLine("G2: D-Pad Left/Right + OPTIONS = Pollen/Nectar Shoot mode");
 
             telemetry.update();
         }
