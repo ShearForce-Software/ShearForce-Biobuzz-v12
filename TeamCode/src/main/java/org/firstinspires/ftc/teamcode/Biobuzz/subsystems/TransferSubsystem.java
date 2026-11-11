@@ -8,6 +8,7 @@ import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -79,6 +80,8 @@ public class TransferSubsystem {
         // REV Through Bore Encoder plugged into a Control/Expansion Hub motor encoder port
         encoderMotor = hardwareMap.get(DcMotorEx.class, TransferConfig.ENCODER_NAME);
         encoderMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        encoderMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        encoderMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Hardware map 5 color / distance sensors
         String[] sensorNames = {

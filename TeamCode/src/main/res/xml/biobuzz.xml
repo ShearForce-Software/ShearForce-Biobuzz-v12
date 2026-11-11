@@ -15,9 +15,9 @@
 
             <!-- I2C Digital Sensors -->
             <RevColorSensorV3 name="transferColorTop" port="0" bus="0"/>
-            <RevColorSensorV3 name="transferColorRight" port="0" bus="1"/>
-            <RevColorSensorV3 name="transferColorBottomBack" port="0" bus="2"/>
-            <RevColorSensorV3 name="transferColorBottomFront" port="0" bus="3"/>
+            <RevColorSensorV3 name="transferColorRight" port="1" bus="1"/>
+            <RevColorSensorV3 name="transferColorBottomBack" port="2" bus="1"/>
+            <RevColorSensorV3 name="transferColorBottomFront" port="3" bus="1"/>
 
         </LynxModule>
         <LynxModule name="Control Hub" port="173">
@@ -36,9 +36,9 @@
             <!-- I2C Digital Sensors -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
             <goBILDAPinpoint name="pinpoint" port="1" bus="1"/>
-            <RevColorSensorV3 name="intakeColorRampBack" port="0" bus="0"/>
-            <RevColorSensorV3 name="transferColorLeft" port="0" bus="2"/>
-            <RevColorSensorV3 name="intakeColorRampFront" port="0" bus="3"/>
+            <RevColorSensorV3 name="intakeColorRampBack" port="0" bus="1"/>
+            <RevColorSensorV3 name="transferColorLeft" port="2" bus="1"/>
+            <RevColorSensorV3 name="intakeColorRampFront" port="3" bus="1"/>
 
         </LynxModule>
     </LynxUsbDevice>
