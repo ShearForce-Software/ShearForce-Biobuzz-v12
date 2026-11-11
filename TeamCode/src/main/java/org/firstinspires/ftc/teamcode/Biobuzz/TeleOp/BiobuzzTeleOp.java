@@ -208,10 +208,14 @@ public class BiobuzzTeleOp extends LinearOpMode {
 
             // 5. Transfer Advance 1 Slot Forward (Right Bumper)
             if (gamepad2.rightBumperWasPressed()) {
-                transfer.advance1SlotForward();
+                transfer.advance1SlotReverse();
+
+            } else if (gamepad2.leftBumperWasPressed()) {
+               transfer.advance1SlotForward();
             }
 
-            // Update subsystem state loops
+
+        // Update subsystem state loops
             follower.update();
             shooter.update();
             transfer.update();

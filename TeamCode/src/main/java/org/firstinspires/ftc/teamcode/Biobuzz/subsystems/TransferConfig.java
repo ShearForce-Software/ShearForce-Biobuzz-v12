@@ -19,8 +19,8 @@ public class TransferConfig {
     public static String COLOR_SENSOR_BOTTOM_FRONT_NAME = "transferColorBottomFront";
 
     // Servo Power Constants
-    public static double FORWARD_POWER = -0.1;
-    public static double REVERSE_POWER = 0.1;
+    public static double FORWARD_POWER = -0.8;
+    public static double REVERSE_POWER = 0.2;
     public static double STOP_POWER = 0.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
