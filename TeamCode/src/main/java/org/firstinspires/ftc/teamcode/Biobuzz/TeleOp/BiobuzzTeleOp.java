@@ -156,17 +156,18 @@ public class BiobuzzTeleOp extends LinearOpMode {
             if (gamepad2.yWasPressed() || gamepad2.triangleWasPressed()) {
                 if (shooter.isRunning()) {
                     shooter.stopFlywheels();
-                } else {
+                }
+                else {
                     shooter.startFlywheels();
                 }
             }
 
             // 2. Shoot Command (Button A / Cross OR Right Trigger)
-            if (gamepad2.a || gamepad2.cross || gamepad2.right_trigger > 0.1) {
-                shooter.firePosition();
-            } else {
-                shooter.restPosition();
-            }
+            //if (gamepad2.a || gamepad2.cross || gamepad2.right_trigger > 0.1) {
+               // shooter.firePosition();
+          //  } else {
+              //  shooter.restPosition();
+           // }
 
             // 3. Intake On/Off Toggle (Button X / Square)
             if (gamepad2.cross || gamepad2.right_trigger > 0.1) {
@@ -175,6 +176,10 @@ public class BiobuzzTeleOp extends LinearOpMode {
                 intake.reverse();
             } else if (gamepad2.circle) {
                 intake.turnOff();
+            }
+
+            if (intake.getVelocity() > 0 && transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK)){
+                transfer.advance1SlotReverse();
             }
             /*
             if (gamepad2.xWasPressed() || gamepad2.squareWasPressed()) {
