@@ -8,6 +8,7 @@ import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -79,6 +80,8 @@ public class TransferSubsystem {
         // REV Through Bore Encoder plugged into a Control/Expansion Hub motor encoder port
         encoderMotor = hardwareMap.get(DcMotorEx.class, TransferConfig.ENCODER_NAME);
         encoderMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        encoderMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        encoderMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Hardware map 5 color / distance sensors
         String[] sensorNames = {
@@ -172,15 +175,65 @@ public class TransferSubsystem {
     /**
      * Rotates the transfer forward by 1 slot (1/4 full rotation).
      */
-    public void advance1SlotForward() {
+    public void Shoot1Ball() {
         advance1Slot(true);
+    }
+
+    /**
+     * Rotates the transfer forward by 5 slots (1 full rotation + 1/4 rotation for extra measure).
+     */
+    public void ShootAllBalls() {
+        this.advanceForward = true;
+        double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
+
+        // rotate 5 slots (all balls should shoot out)
+        targetEncoderTicks = getRawTicks() + TransferConfig.TICKS_PER_REV + quarterRotationTicks;
+        rotateForward();
+
+        isAdvancingSlot = true;
+
     }
 
     /**
      * Rotates the transfer in reverse by 1 slot (1/4 full rotation).
      */
-    public void advance1SlotReverse() {
+    public void Load1Ball() {
         advance1Slot(false);
+    }
+
+    /**
+     * Rotates the transfer in reverse by 1/2 slot (1/8 full rotation)
+     * to keep bottom ball from falling out until ready to shoot
+     */
+    public void StowBalls() {
+        this.advanceForward = false;
+        double eighthRotationTicks = TransferConfig.TICKS_PER_REV / 8.0;
+        targetEncoderTicks = getRawTicks() - eighthRotationTicks;
+        rotateReverse();
+
+        isAdvancingSlot = true;
+    }
+
+    public boolean IsBusy() {
+        return isAdvancingSlot;
+    }
+
+    /**
+     * Returns the transfer to the zero position (ready to take in first ball)
+     */
+    public void ReturnToZeroPosition() {
+        targetEncoderTicks = 0;
+
+        if (targetEncoderTicks != getRawTicks()) {
+            if (targetEncoderTicks > getRawTicks()) {
+                this.advanceForward = true;
+                rotateForward();
+            } else {
+                this.advanceForward = false;
+                rotateReverse();
+            }
+            isAdvancingSlot = true;
+        }
     }
 
     /**
@@ -193,10 +246,17 @@ public class TransferSubsystem {
             return true;
         }
 
+        // if we were shooting
         if (advanceForward) {
             if (getRawTicks() >= targetEncoderTicks) {
                 stop();
-                return true;
+
+                if (TransferConfig.AUTO_TRANSFER) {
+                    ReturnToZeroPosition();
+                }
+                else {
+                    return true;
+                }
             }
         } else {
             if (getRawTicks() <= targetEncoderTicks) {

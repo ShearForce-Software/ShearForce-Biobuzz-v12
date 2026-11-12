@@ -20,7 +20,7 @@ public class TransferConfig {
 
     // Servo Power Constants
     public static double FORWARD_POWER = -0.8;
-    public static double REVERSE_POWER = 0.8;
+    public static double REVERSE_POWER = 0.2;
     public static double STOP_POWER = 0.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
@@ -33,6 +33,8 @@ public class TransferConfig {
     public static float BLUE_MIN_RATIO = 0.40f;         // Min blue/total ratio for Blue ball
     public static float YELLOW_RED_MIN_RATIO = 0.30f;   // Min red ratio for Yellow ball
     public static float YELLOW_GREEN_MIN_RATIO = 0.30f; // Min green ratio for Yellow ball
+
+    public static boolean AUTO_TRANSFER = true;
 
     // Private constructor prevents instantiation
     private TransferConfig() {}

@@ -127,9 +127,9 @@ public class PedroExampleTeleOp extends OpMode {
 
         // Fire Indexer: A button fires indexer once flywheels are at target velocity
         if (gamepad2.a && shooter.isAtSpeed()) {
-            shooter.firePosition();
+            shooter.setPollenPosition();
         } else {
-            shooter.restPosition();
+            shooter.setNectarPosition();
         }
 
         // Essential: Keep Pedro's odometry tracking and internal path loops refreshing
