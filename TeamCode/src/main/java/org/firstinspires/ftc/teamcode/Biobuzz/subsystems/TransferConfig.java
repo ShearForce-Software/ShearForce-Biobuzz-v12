@@ -28,7 +28,7 @@ public class TransferConfig {
     public static boolean ENCODER_REVERSED = true;
 
     // Color Sensor Detection Thresholds
-    public static double DISTANCE_THRESHOLD_MM = 45.0; // Distance in mm to consider a ball present
+    public static double DISTANCE_THRESHOLD_MM = 35.0; // Distance in mm to consider a ball present
     public static float RED_MIN_RATIO = 0.40f;          // Min red/total ratio for Red ball
     public static float BLUE_MIN_RATIO = 0.40f;         // Min blue/total ratio for Blue ball
     public static float YELLOW_RED_MIN_RATIO = 0.30f;   // Min red ratio for Yellow ball
