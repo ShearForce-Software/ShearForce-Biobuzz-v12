@@ -74,7 +74,7 @@ public class Path_1_AudienceRed extends LinearOpMode {
                         //Drive up to the hive and shoot preload
                         follow(follower, driveToShoot1),
                         parallel(
-                                shooter.firePositionCommand(),
+                                //shooter.firePositionCommand(),
                                 waitMs(1000)
                         ),
 
@@ -82,15 +82,15 @@ public class Path_1_AudienceRed extends LinearOpMode {
                         //Intake from the Garden
                         follow(follower, driveToShoot2),
                         parallel(
-                                intake.turnOnCommand(),
+                                //intake.turnOnCommand(),
                                 waitMs(500)
                         ),
-                        intake.turnOffCommand(),
+                        //intake.turnOffCommand(),
 
                         //shoot on the other hive
                         follow(follower, driveToShoot3),
                         parallel(
-                                shooter.firePositionCommand(),
+                                //shooter.firePositionCommand(),
                                 waitMs(1000)
                         ),
 
@@ -98,15 +98,15 @@ public class Path_1_AudienceRed extends LinearOpMode {
                         //Drive and Intake from the flower
                         follow(follower, driveToShoot4),
                         parallel(
-                                intake.turnOnCommand(),
+                                //intake.turnOnCommand(),
                                 waitMs(500)
                         ),
-                        intake.turnOffCommand(),
+                        //intake.turnOffCommand(),
 
                         //Drive up to the Hive and shoot!
                         follow(follower, driveToShoot5),
                         parallel(
-                                shooter.firePositionCommand(),
+                                //shooter.firePositionCommand(),
                                 waitMs(1000)
                         ),
                         //drive to the parking zone and park
