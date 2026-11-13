@@ -48,10 +48,10 @@ public class Path_1_AudienceRed extends LinearOpMode {
         Pose startPose = new Pose(25, 9, Math.toRadians(90));
         Pose Pose1 = new Pose(49, 24.5, Math.toRadians(75));
         Pose Pose2 = new Pose(10, 10, Math.toRadians(80));
-        Pose Pose3 = new Pose(37, 115, Math.toRadians(310));
+        Pose Pose3 = new Pose(37, 115, Math.toRadians(-50));
         Pose Pose4 = new Pose(14, 50, Math.toRadians(25));
-        Pose Pose5 = new Pose(37,115, Math.toRadians(310));
-        Pose Pose6 = new Pose(12,115, Math.toRadians(310));
+        Pose Pose5 = new Pose(37,115, Math.toRadians(-50));
+        Pose Pose6 = new Pose(12,115, Math.toRadians(-50));
 
         // Set starting pose
         follower.setPose(startPose);
