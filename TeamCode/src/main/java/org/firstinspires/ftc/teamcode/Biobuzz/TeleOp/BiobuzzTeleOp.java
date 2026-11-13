@@ -81,6 +81,7 @@ public class BiobuzzTeleOp extends LinearOpMode {
         follower.setPose(MatchConfig.currentPose);
         intake.depollinatorUp();
         shooter.hoodMinPosition();
+        visionHeadingCorrectionEnabled = false;
         // =========================================================================
         // GAMEPAD 1: DRIVER CONTROLS
         // =========================================================================
@@ -130,9 +131,9 @@ public class BiobuzzTeleOp extends LinearOpMode {
             }
 
             // Handle driving modes
-            if (isHolding) {
-                Scheduler.execute();
-            } else {
+          //  if (isHolding) {
+          //      Scheduler.execute();
+          //  } else {
                 // Field-centric vector calculation
                 double robotHeading = follower.pose().heading();
                 final double cos = Math.cos(-robotHeading);
@@ -141,7 +142,7 @@ public class BiobuzzTeleOp extends LinearOpMode {
                 double fieldCentricStrafe = forward * sin + strafe * cos;
 
                 follower.manual(fieldCentricForward, fieldCentricStrafe, turn);
-            }
+          //  }
 
             // Periodically correct heading drift via AprilTag vision when robot is stationary AND mode is enabled
             Velocity robotVel = follower.localizer.velocity();
