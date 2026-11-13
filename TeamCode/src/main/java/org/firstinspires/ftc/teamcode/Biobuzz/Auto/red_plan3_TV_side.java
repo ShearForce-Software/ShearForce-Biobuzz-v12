@@ -37,10 +37,10 @@ public class red_plan3_TV_side extends LinearOpMode {
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
-        Pose startPose = new Pose(60, 135, 0);
-        Pose collectPollen = new Pose(49, 134, Math.toRadians(90));
+        Pose startPose = new Pose(63, 135, 0);
+        Pose collectPollen = new Pose(49, 126, Math.toRadians(90));
         Pose shootPose = new Pose(60, 134, Math.toRadians(90));
-        Pose oppositeShoot = new Pose(60, 12, Math.toRadians(180));
+        Pose oppositeShoot = new Pose(60, 20, Math.toRadians(180));
         Pose drivePose = new Pose(60, 120, Math.toRadians(0));
         Pose drivePose1 = new Pose(10, 120, Math.toRadians(0));
         Pose parkPose = new Pose(10, 107, Math.toRadians(0));
