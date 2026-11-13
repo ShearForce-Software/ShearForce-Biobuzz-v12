@@ -1,0 +1,97 @@
+{
+  "startPoint": {
+    "x": 15,
+    "y": 135,
+    "heading": "constant",
+    "degrees": -90,
+    "locked": false
+  },
+  "lines": [
+    {
+      "id": "mwfjlq22-isu1p7",
+      "name": "",
+      "endPoint": {
+        "x": 12,
+        "y": 96,
+        "heading": "constant",
+        "reverse": false,
+        "startDeg": -90,
+        "endDeg": -90,
+        "degrees": -90
+      },
+      "controlPoints": [],
+      "color": "#7C55BB",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    }
+  ],
+  "shapes": [
+    {
+      "id": "biobuzz-hive-red",
+      "name": "HiveRedSide",
+      "vertices": [
+        {
+          "x": 46.5,
+          "y": 92
+        },
+        {
+          "x": 46.5,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    },
+    {
+      "id": "biobuzz-hive-blue",
+      "name": "HiveBlueSide",
+      "vertices": [
+        {
+          "x": 95,
+          "y": 92
+        },
+        {
+          "x": 95,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    }
+  ],
+  "sequence": [
+    {
+      "kind": "wait",
+      "id": "mwfiz30j-hz7anx",
+      "name": "",
+      "durationMs": 1000,
+      "locked": false
+    },
+    {
+      "kind": "path",
+      "lineId": "mwfjlq22-isu1p7"
+    }
+  ],
+  "extraData": {}
+}
