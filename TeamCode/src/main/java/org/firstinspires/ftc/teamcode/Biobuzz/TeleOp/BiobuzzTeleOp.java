@@ -210,12 +210,15 @@ public class BiobuzzTeleOp extends LinearOpMode {
             if (gamepad2.crossWasPressed()) {
                 if (!gamepad2.options) {
                     intake.turnOn();
+                    intakeOn=true;
                 }
             } else if (gamepad2.squareWasPressed()) {
                 intake.reverse();
+                intakeOn = true;
             } else if (gamepad2.circleWasPressed()) {
                 if (!gamepad2.options) {
                     intake.turnOff();
+                    intakeOn = false;
                 }
             }
 
@@ -251,6 +254,7 @@ public class BiobuzzTeleOp extends LinearOpMode {
                         !(transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) || intake.isRampFrontBallPresent() || intake.isRampBackBallPresent()) ) {
                     // assume it is safe to turn off the intake subsystem
                     intake.turnOff();
+                    intakeOn = false;
                 }
             }
 

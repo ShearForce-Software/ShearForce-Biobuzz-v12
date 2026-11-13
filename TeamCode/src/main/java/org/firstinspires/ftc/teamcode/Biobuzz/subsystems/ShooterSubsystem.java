@@ -66,7 +66,7 @@ public class ShooterSubsystem {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT); // Coasting prevents gear wear
         }
 
-        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_SHOOT_NECTAR_POSITION);
+        shooterServo.setPosition(ShooterConfig.SHOOTER_SERVO_SHOOT_POLLEN_POSITION);
     }
 
     /**

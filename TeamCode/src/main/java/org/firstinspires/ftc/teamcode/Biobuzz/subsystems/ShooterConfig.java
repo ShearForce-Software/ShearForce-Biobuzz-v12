@@ -25,12 +25,12 @@ public class ShooterConfig {
     public static double VELOCITY_TOLERANCE = 25.0; // ~53 RPM tolerance
 
     public static double SHOOTER_SERVO_SHOOT_NECTAR_POSITION = 1.0;
-    public static double SHOOTER_SERVO_SHOOT_POLLEN_POSITION = 0.8;
+    public static double SHOOTER_SERVO_SHOOT_POLLEN_POSITION = 0.5;
     public static double SHOOTER_HOOD_MIN = 0.0;
     public static double SHOOTER_HOOD_MAX = 0.8;
 
 
-    public static double DEFAULT_HIGH_VELOCITY = 1110.0;
+    public static double DEFAULT_HIGH_VELOCITY = 1160.0;
     public static double DEFAULT_LOW_VELOCITY = 500.0;
 
     // Private constructor prevents instantiation
