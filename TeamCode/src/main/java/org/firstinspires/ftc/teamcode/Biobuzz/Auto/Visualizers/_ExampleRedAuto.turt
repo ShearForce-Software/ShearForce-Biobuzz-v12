@@ -1,0 +1,213 @@
+{
+  "version": "2.7.0",
+  "header": {
+    "info": "Created with Turtle Tracer",
+    "copyright": "Copyright 2026 Matthew Allen. Licensed under the Modified Apache License, Version 2.0.",
+    "link": "https://github.com/Mallen220/TurtleTracer"
+  },
+  "startPoint": {
+    "x": 33,
+    "y": 9,
+    "heading": "linear",
+    "locked": false,
+    "startDeg": 180,
+    "endDeg": 90
+  },
+  "lines": [
+    {
+      "id": "line-mwfkwfa8-ljfmyj",
+      "name": "driveToGarden",
+      "endPoint": {
+        "x": 9.5,
+        "y": 9,
+        "heading": "linear",
+        "startDeg": 180,
+        "endDeg": 180
+      },
+      "controlPoints": [],
+      "color": "#8CD6B8",
+      "eventMarkers": [],
+      "locked": false,
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": "",
+      "hidden": false
+    },
+    {
+      "id": "mwfl3ath-69adm8",
+      "name": "driveToTVShoot1",
+      "endPoint": {
+        "x": 36,
+        "y": 107,
+        "heading": "constant",
+        "startDeg": 180,
+        "endDeg": 90,
+        "degrees": 90
+      },
+      "controlPoints": [
+        {
+          "x": 30,
+          "y": 48
+        }
+      ],
+      "color": "#8A5666",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    },
+    {
+      "id": "mwfl43ts-3zdeq0",
+      "name": "driveToRedAudienceFlower",
+      "endPoint": {
+        "x": 10.5,
+        "y": 48,
+        "heading": "linear",
+        "startDeg": 90,
+        "endDeg": 180
+      },
+      "controlPoints": [
+        {
+          "x": 20,
+          "y": 90
+        },
+        {
+          "x": 24,
+          "y": 72
+        },
+        {
+          "x": 30,
+          "y": 60
+        }
+      ],
+      "color": "#DC6885",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    },
+    {
+      "id": "mwfl6m50-acj3u7",
+      "name": "driveToTVShoot2",
+      "endPoint": {
+        "x": 36,
+        "y": 105,
+        "heading": "linear",
+        "startDeg": 180,
+        "endDeg": 90
+      },
+      "controlPoints": [
+        {
+          "x": 30,
+          "y": 60
+        },
+        {
+          "x": 20,
+          "y": 90
+        }
+      ],
+      "color": "#7DCD5D",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    },
+    {
+      "id": "mwflbwoi-74tktq",
+      "name": "driveToParking",
+      "endPoint": {
+        "x": 12,
+        "y": 96,
+        "heading": "linear",
+        "startDeg": 90,
+        "endDeg": 90
+      },
+      "controlPoints": [],
+      "color": "#BDAA97",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    }
+  ],
+  "sequence": [
+    {
+      "kind": "path",
+      "lineId": "line-mwfkwfa8-ljfmyj"
+    },
+    {
+      "kind": "path",
+      "lineId": "mwfl3ath-69adm8"
+    },
+    {
+      "kind": "path",
+      "lineId": "mwfl43ts-3zdeq0"
+    },
+    {
+      "kind": "path",
+      "lineId": "mwfl6m50-acj3u7"
+    },
+    {
+      "kind": "path",
+      "lineId": "mwflbwoi-74tktq"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "biobuzz-hive-red",
+      "name": "HiveRedSide",
+      "vertices": [
+        {
+          "x": 46.5,
+          "y": 92
+        },
+        {
+          "x": 46.5,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    },
+    {
+      "id": "biobuzz-hive-blue",
+      "name": "HiveBlueSide",
+      "vertices": [
+        {
+          "x": 95,
+          "y": 92
+        },
+        {
+          "x": 95,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    }
+  ],
+  "extraData": {}
+}
