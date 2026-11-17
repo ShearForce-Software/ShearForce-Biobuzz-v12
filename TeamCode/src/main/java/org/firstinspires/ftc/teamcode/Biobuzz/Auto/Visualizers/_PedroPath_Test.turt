@@ -71,7 +71,7 @@
       "waitAfterName": ""
     },
     {
-      "id": "mwfks6mw-0b07jj",
+      "id": "mwkyistj-wqxvod",
       "name": "left",
       "endPoint": {
         "x": 40,
@@ -81,7 +81,7 @@
         "endDeg": 90
       },
       "controlPoints": [],
-      "color": "#AAA855",
+      "color": "#77BA58",
       "eventMarkers": [],
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
@@ -104,7 +104,7 @@
     },
     {
       "kind": "path",
-      "lineId": "mwfks6mw-0b07jj"
+      "lineId": "mwkyistj-wqxvod"
     }
   ],
   "shapes": [

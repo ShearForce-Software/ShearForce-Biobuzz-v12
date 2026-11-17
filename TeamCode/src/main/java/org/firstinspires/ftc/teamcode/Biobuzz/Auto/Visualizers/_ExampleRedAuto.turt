@@ -11,15 +11,15 @@
     "heading": "linear",
     "locked": false,
     "startDeg": 180,
-    "endDeg": 90
+    "endDeg": 0
   },
   "lines": [
     {
       "id": "line-mwfkwfa8-ljfmyj",
-      "name": "driveToGarden",
+      "name": "driveToGarden_and_intake_ON",
       "endPoint": {
-        "x": 9.5,
-        "y": 9,
+        "x": 11,
+        "y": 11,
         "heading": "linear",
         "startDeg": 180,
         "endDeg": 180
@@ -35,20 +35,46 @@
       "hidden": false
     },
     {
+      "id": "mwkynvqp-hv4it1",
+      "name": "driveToAudienceShoot1_and_intake_OFF ",
+      "endPoint": {
+        "x": 60,
+        "y": 24,
+        "heading": "linear",
+        "startDeg": 180,
+        "endDeg": 180
+      },
+      "controlPoints": [],
+      "color": "#877D8B",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    },
+    {
       "id": "mwfl3ath-69adm8",
       "name": "driveToTVShoot1",
       "endPoint": {
         "x": 36,
-        "y": 107,
-        "heading": "constant",
+        "y": 111,
+        "heading": "linear",
         "startDeg": 180,
-        "endDeg": 90,
+        "endDeg": 0,
         "degrees": 90
       },
       "controlPoints": [
         {
-          "x": 30,
+          "x": 24,
           "y": 48
+        },
+        {
+          "x": 24,
+          "y": 60
+        },
+        {
+          "x": 20,
+          "y": 96
         }
       ],
       "color": "#8A5666",
@@ -62,10 +88,10 @@
       "id": "mwfl43ts-3zdeq0",
       "name": "driveToRedAudienceFlower",
       "endPoint": {
-        "x": 10.5,
+        "x": 12,
         "y": 48,
         "heading": "linear",
-        "startDeg": 90,
+        "startDeg": 0,
         "endDeg": 180
       },
       "controlPoints": [
@@ -94,12 +120,16 @@
       "name": "driveToTVShoot2",
       "endPoint": {
         "x": 36,
-        "y": 105,
+        "y": 111,
         "heading": "linear",
         "startDeg": 180,
-        "endDeg": 90
+        "endDeg": 0
       },
       "controlPoints": [
+        {
+          "x": 24,
+          "y": 48
+        },
         {
           "x": 30,
           "y": 60
@@ -123,10 +153,15 @@
         "x": 12,
         "y": 96,
         "heading": "linear",
-        "startDeg": 90,
-        "endDeg": 90
+        "startDeg": 0,
+        "endDeg": 0
       },
-      "controlPoints": [],
+      "controlPoints": [
+        {
+          "x": 30,
+          "y": 96
+        }
+      ],
       "color": "#BDAA97",
       "eventMarkers": [],
       "waitBeforeMs": 0,
@@ -137,20 +172,59 @@
   ],
   "sequence": [
     {
+      "kind": "wait",
+      "id": "mwkyl9wl-irvlpf",
+      "name": "Shoot first 4 balls",
+      "durationMs": 3000,
+      "locked": false
+    },
+    {
       "kind": "path",
       "lineId": "line-mwfkwfa8-ljfmyj"
+    },
+    {
+      "kind": "path",
+      "lineId": "mwkynvqp-hv4it1"
+    },
+    {
+      "kind": "wait",
+      "id": "mwkz56wo-0mz23c",
+      "name": "assess-if-hive-tipped",
+      "durationMs": 1000,
+      "locked": false
     },
     {
       "kind": "path",
       "lineId": "mwfl3ath-69adm8"
     },
     {
+      "kind": "wait",
+      "id": "mwkyrwmp-uem8nf",
+      "name": "shoot-second-4-balls",
+      "durationMs": 3000,
+      "locked": false
+    },
+    {
       "kind": "path",
       "lineId": "mwfl43ts-3zdeq0"
     },
     {
+      "kind": "wait",
+      "id": "mwkz9ujd-rpg1ro",
+      "name": "intake-from-flower",
+      "durationMs": 3000,
+      "locked": false
+    },
+    {
       "kind": "path",
       "lineId": "mwfl6m50-acj3u7"
+    },
+    {
+      "kind": "wait",
+      "id": "mwkzbrvr-fxwl88",
+      "name": "shoot-three-4-balls",
+      "durationMs": 3000,
+      "locked": false
     },
     {
       "kind": "path",
