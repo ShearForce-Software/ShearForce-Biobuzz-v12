@@ -1,0 +1,141 @@
+{
+  "version": "2.7.0",
+  "header": {
+    "info": "Created with Turtle Tracer",
+    "copyright": "Copyright 2026 Matthew Allen. Licensed under the Modified Apache License, Version 2.0.",
+    "link": "https://github.com/Mallen220/TurtleTracer"
+  },
+  "startPoint": {
+    "x": 9,
+    "y": 25,
+    "heading": "linear",
+    "locked": false,
+    "startDeg": 90,
+    "endDeg": 90
+  },
+  "lines": [
+    {
+      "id": "line-mwfkiif1-u0ln00",
+      "name": "driveToShoot1",
+      "endPoint": {
+        "x": 60,
+        "y": 25,
+        "heading": "linear",
+        "startDeg": 90,
+        "endDeg": 90
+      },
+      "controlPoints": [],
+      "color": "#8CD6B8",
+      "eventMarkers": [],
+      "locked": false,
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": "",
+      "hidden": false
+    },
+    {
+      "id": "mwfkku0k-8bs0rg",
+      "name": "driveToShoot2",
+      "endPoint": {
+        "x": 10,
+        "y": 10,
+        "heading": "linear",
+        "startDeg": 90,
+        "endDeg": 90
+      },
+      "controlPoints": [],
+      "color": "#BDCBAC",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    },
+    {
+      "id": "mwfklqnq-mtr9uf",
+      "name": "driveToPark",
+      "endPoint": {
+        "x": 46,
+        "y": 118,
+        "heading": "linear",
+        "startDeg": 90,
+        "endDeg": 90
+      },
+      "controlPoints": [],
+      "color": "#6DD999",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": ""
+    }
+  ],
+  "sequence": [
+    {
+      "kind": "path",
+      "lineId": "line-mwfkiif1-u0ln00"
+    },
+    {
+      "kind": "path",
+      "lineId": "mwfkku0k-8bs0rg"
+    },
+    {
+      "kind": "path",
+      "lineId": "mwfklqnq-mtr9uf"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "biobuzz-hive-red",
+      "name": "HiveRedSide",
+      "vertices": [
+        {
+          "x": 46.5,
+          "y": 92
+        },
+        {
+          "x": 46.5,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    },
+    {
+      "id": "biobuzz-hive-blue",
+      "name": "HiveBlueSide",
+      "vertices": [
+        {
+          "x": 95,
+          "y": 92
+        },
+        {
+          "x": 95,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    }
+  ],
+  "extraData": {}
+}
