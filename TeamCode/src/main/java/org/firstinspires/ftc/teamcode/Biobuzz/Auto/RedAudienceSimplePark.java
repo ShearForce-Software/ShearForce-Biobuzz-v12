@@ -37,7 +37,7 @@ public class RedAudienceSimplePark extends LinearOpMode {
 
         // Target Poses
         Pose startPose = new Pose(24, 9, Math.toRadians(90));
-        Pose parkPose = new Pose(12, 96, Math.toRadians(90));
+        Pose parkPose = new Pose(8, 96, Math.toRadians(90));
 
         // Set starting pose
         follower.setPose(startPose);
