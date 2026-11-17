@@ -2,35 +2,65 @@
 
 This file tracks the upcoming software tasks.
 
-*Check off items as they are completed and tested on the robot.*
+*Check off ✅ items as they are completed and tested on the robot.*
 
 ## 🚀 Drive System, TeleOp, and Auto Routing 🚀
-- [X] **Update biobuzz.xml with actual locations things are plugged in**
+- [✅] Update biobuzz.xml with actual locations things are plugged in
   - Verify _ExampleRedAuto can be initialized without crashing (it has all subsystems defined in it)
-- [ ] **Tune new BIOBUZZ robot for PedroPathing**
-- [ ] **Test PedroPathing example routes**
+- [✅] Tune new BIOBUZZ robot for PedroPathing
+- [✅] Test PedroPathing example routes
     - Verify basic path following works as expected
-- [ ] **Test BiobuzzTeleOp for basic manual drive controls**
-- [ ] **Update names of existing Auto routes to show color, plan set (1,2, or 3), and start position**
-  - make similar to "red_plan3_Audience_side" and "red_plan3_TV_side" style naming
-- [ ] **Create Plan 1 RED - Audience route**
-- [ ] **Create Plan 1 RED - TV side route**
-- [ ] **Create Plan 2 RED - Audience route**
-- [ ] **Create Plan 2 RED - TV side route**
-- [ ] **Create Plan 3 RED - Audience route**
-- [ ] **Create Plan 3 RED - TV side route**
-- [ ] **Create Plan 1 BLUE - Audience and TV side routes**
-- [ ] **Create Plan 2 BLUE - Audience and TV side routes**
-- [ ] **Create Plan 3 BLUE - Audience and TV side routes**
-- [ ] **Update Subsystem gamepad controls in BiobuzzTeleOp as needed**
-- [ ] **Update subsystem and sensor telemetry messages to BioBuzzTeleOp as needed**
+- [ ] **Move Color sensor logic to separate thread to minimize latency**
+- [ ] **Reduce latency of telemetry messages by slowing them down**
+- [ ] **Test BiobuzzTeleOp for Robot Centric manual drive controls for > 4 minutes**
+- [ ] Test BiobuzzTeleOp for Field Centric manual drive controls for > 4 minutes
+- [✅] Update names of existing Auto routes to show color, plan set (1,2, or 3), and start position
+- [ ] Save all autonomous routes in turtle format
+- [ ] **Create and Verify MVP parking route for all 4 positions**
+- [ ] Create Plan 1 RED - Audience route
+- [ ] Create Plan 1 RED - TV side route
+- [ ] Create Plan 2 RED - Audience route
+- [ ] Create Plan 2 RED - TV side route
+- [ ] Create Plan 3 RED - Audience route
+- [ ] Create Plan 3 RED - TV side route
+- [ ] Create Plan 1 BLUE - Audience and TV side routes
+- [ ] Create Plan 2 BLUE - Audience and TV side routes
+- [ ] Create Plan 3 BLUE - Audience and TV side routes
+
+## ⚙️ Subsystems & Mechanisms ⚙️
+- [ ] **Intake Testing**
+  - [✅] Test depollinator control, determine optimum up/down values for servo
+  - [✅] Verify ramp sensors working to detect presence of a ball (nectar or pollen)
+  - [ ] Verify ramp sensors working to detect difference between Nectar versus Pollen
+  - [ ] Add ability to detect wrong color Nectar on ramp and auto eject it
+  - [ ] Update the de-pollinator up position to be tighter to the chassis
+- [ ] **Transfer System Testing**
+  - [ ] Add PIDF tuning for transfer system rotate CRServo
+  - [ ] Move auto transfer logic from BiobuzzTeleOp to TransferSubsystem so can be reused in autonomous routes
+  - [ ] Update color sensor logic to not update while the transfer subsystem is running (stop false arm detects)
+  - [✅] Test encoder to determine correct tick/revolution value
+  - [✅] Test ability to move forward or reverse 1 hole spot
+  - [✅] Test ability to detect presence of a ball (nectar or pollen) in each slot
+  - [✅] Test ability to detect difference of color between Nectar or Pollen in each slot
+- [ ] **Intake + Transfer Combo Testing**
+  - [✅] Add ability to auto advance transfer subsystem to next slot when intake is on and ball detected in bottom spot
+  - [✅] Add ability to auto turn off intake when all slots are filled
+  - [ ] Test and verify wrong color Nectar never slips in
+  - [ ] Test and verify never hold more than 4 game elements
+- [ ] **Intake + Transfer + Shooter Combo Testing**
+  - [ ] **Fix Shooter Nectar/Pollen Servo in BiobuzzTeleOp**
+  - Test shooter on actual field
+  - Determine best velocities for several distances
+  - See if can determine an optimum "curve" algorithm to use for shooting based on distance
+    - https://mycurvefit.com/
+    - Reference: https://www.youtube.com/watch?v=Ap1lBywv00M (aprilTag distance algorithm but relevant method)
 
 ## 📷 Vision & Localization 📷
-- [ ] **Add methods to utilize blob detection to orient robot towards biggest piles of pollen**
-- [ ] **Verify camera is working on new BIOBUZZ robot** 
+- [ ] Add methods to utilize blob detection to orient robot towards biggest piles of pollen
+- [ ] **Verify camera is working on new BIOBUZZ robot**
   - Using the biobuzz.xml config file and the CameraTunerOpMode
   - May need to update biobuzz.xml config file for the actual camera ID**
-- [ ] **Create Test OpMode to calculate distance to target based on aprilTab size**
+- [ ] Create Test OpMode to calculate distance to target based on aprilTab size
   - Watch YouTube video explaining concept:  https://www.youtube.com/watch?v=Ap1lBywv00M
   - If works, then incorporate calculation into CameraSubsystem
 
@@ -49,29 +79,6 @@ This file tracks the upcoming software tasks.
 
 *Note: Consistent detection threshold cuts off around 48 in.*
 
-## ⚙️ Subsystems & Mechanisms ⚙️
-- [ ] **Intake Testing**
-  - [ ] Determine optimum speed for intake motor
-  - [ ] Test depollinator control, determine optimum up/down values for servo
-  - [ ] Verify ramp sensors working to detect presence of a ball (nectar or pollen)
-  - [ ] Verify ramp sensors working to detect difference between Nectar versus Pollen
-  - [ ] Add ability to detect wrong color Nectar on ramp and auto eject it
-- [ ] **Transfer System Testing**
-  - [ ] Test encoder to determine correct tick/revolution value
-  - [ ] Test ability to move forward or reverse 1 hole spot
-  - [ ] Test ability to detect presence of a ball (nectar or pollen) in each slot
-  - [ ] Test ability to detect difference of color between Nectar or Pollen in each slot
-- [ ] **Intake + Transfer Combo Testing**
-  - [ ] Add ability to auto advance transfer subsystem to next slot when intake is on and ball detected in bottom spot
-  - [ ] Add ability to auto turn off intake when all slots are filled
-  - [ ] Test and verify wrong color Nectar never slips in
-  - [ ] Test and verify never hold more than 4 game elements
-- [ ] **Intake + Transfer + Shooter Combo Testing**
-  - Test shooter on actual field
-  - Determine best velocities for several distances
-  - See if can determine an optimum "curve" algorithm to use for shooting based on distance
-    - https://mycurvefit.com/
-    - Reference: https://www.youtube.com/watch?v=Ap1lBywv00M (aprilTag distance algorithm but relevant method)
 
 ## 📝 Reference Notes
 * **Active Config:** Stored in `TeamCode/res/xml/biobuzz.xml`

@@ -19,16 +19,16 @@ public class TransferConfig {
     public static String COLOR_SENSOR_BOTTOM_FRONT_NAME = "transferColorBottomFront";
 
     // Servo Power Constants
-    public static double FORWARD_POWER = -0.8;
-    public static double REVERSE_POWER = 0.2;
+    public static double FORWARD_POWER = -1.0;
+    public static double REVERSE_POWER = 0.09;
     public static double STOP_POWER = 0.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
-    public static double TICKS_PER_REV = 8192.0;
+    public static double TICKS_PER_REV = 6192.0; //8192
     public static boolean ENCODER_REVERSED = true;
 
     // Color Sensor Detection Thresholds
-    public static double DISTANCE_THRESHOLD_MM = 45.0; // Distance in mm to consider a ball present
+    public static double DISTANCE_THRESHOLD_MM = 35.0; // Distance in mm to consider a ball present
     public static float RED_MIN_RATIO = 0.40f;          // Min red/total ratio for Red ball
     public static float BLUE_MIN_RATIO = 0.40f;         // Min blue/total ratio for Blue ball
     public static float YELLOW_RED_MIN_RATIO = 0.30f;   // Min red ratio for Yellow ball

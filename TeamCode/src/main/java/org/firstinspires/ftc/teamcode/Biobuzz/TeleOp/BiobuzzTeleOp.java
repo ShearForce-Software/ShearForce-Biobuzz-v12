@@ -10,7 +10,10 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.math.Velocity;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Biobuzz.pedro.Constants;
@@ -20,6 +23,7 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.TeleOp.MelodyRobotCentricTest;
 import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 
 import java.util.Locale;
@@ -52,6 +56,8 @@ public class BiobuzzTeleOp extends LinearOpMode {
     private ShooterSubsystem shooter;
     private CameraSubsystem camera;
 
+
+
     // Driver States
     private Command holdCommand = null;
     private boolean isHolding = false;
@@ -81,6 +87,33 @@ public class BiobuzzTeleOp extends LinearOpMode {
         follower.setPose(MatchConfig.currentPose);
         intake.depollinatorUp();
         shooter.hoodMinPosition();
+        visionHeadingCorrectionEnabled = false;
+
+        DcMotor BackLeft,BackRight,FrontLeft,FrontRight;
+
+        // The next four sections initialize and configure everything needed to use the motors
+        BackLeft = hardwareMap.get(DcMotor.class, "leftRear");
+        BackRight = hardwareMap.get(DcMotor.class, "rightRear_rightOdometry");
+        FrontLeft = hardwareMap.get(DcMotor.class, "leftFront_leftOdometry");
+        FrontRight = hardwareMap.get(DcMotor.class, "rightFront_centerOdometry");
+
+        BackLeft.setDirection(DcMotor.Direction.REVERSE);
+        FrontLeft.setDirection(DcMotor.Direction.REVERSE);
+
+        BackLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BackRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FrontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FrontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        BackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        ElapsedTime rateLimitTimer = new ElapsedTime();
+        waitForStart();
+        rateLimitTimer.reset();
+
         // =========================================================================
         // GAMEPAD 1: DRIVER CONTROLS
         // =========================================================================
@@ -101,17 +134,17 @@ public class BiobuzzTeleOp extends LinearOpMode {
             double turn = gamepad1.right_stick_x;
 
             // Break out of position hold if significant driver input is detected
-            boolean driverInputDetected = Math.hypot(forward, strafe) > 0.05 || Math.abs(turn) > 0.05;
+           /* boolean driverInputDetected = Math.hypot(forward, strafe) > 0.05 || Math.abs(turn) > 0.05;
             if (driverInputDetected && isHolding) {
                 isHolding = false;
                 if (holdCommand != null) {
                     holdCommand.cancel();
                     holdCommand = null;
                 }
-            }
+            }*/
 
             // Toggle Hold Mode via Gamepad 1 Button A (Cross)
-            if (gamepad1.aWasPressed() || gamepad1.crossWasPressed()) {
+           /* if (gamepad1.aWasPressed() || gamepad1.crossWasPressed()) {
                 isHolding = !isHolding;
                 if (isHolding) {
                     holdCommand = hold(follower);
@@ -122,29 +155,29 @@ public class BiobuzzTeleOp extends LinearOpMode {
                         holdCommand = null;
                     }
                 }
-            }
+            }*/
 
             // Toggle Vision Heading Drift Correction Mode via Gamepad 1 Button B (Circle)
-            if (gamepad1.bWasPressed() || gamepad1.circleWasPressed()) {
+            /*if (gamepad1.bWasPressed() || gamepad1.circleWasPressed()) {
                 visionHeadingCorrectionEnabled = !visionHeadingCorrectionEnabled;
-            }
+            }*/
 
             // Handle driving modes
-            if (isHolding) {
-                Scheduler.execute();
-            } else {
+          //  if (isHolding) {
+          //      Scheduler.execute();
+          //  } else {
                 // Field-centric vector calculation
-                double robotHeading = follower.pose().heading();
+               /* double robotHeading = follower.pose().heading();
                 final double cos = Math.cos(-robotHeading);
                 final double sin = Math.sin(-robotHeading);
                 double fieldCentricForward = forward * cos - strafe * sin;
                 double fieldCentricStrafe = forward * sin + strafe * cos;
 
-                follower.manual(fieldCentricForward, fieldCentricStrafe, turn);
-            }
+                follower.manual(fieldCentricForward, fieldCentricStrafe, turn);*/
+          //  }
 
             // Periodically correct heading drift via AprilTag vision when robot is stationary AND mode is enabled
-            Velocity robotVel = follower.localizer.velocity();
+            /*Velocity robotVel = follower.localizer.velocity();
             double linearSpeed = Math.hypot(robotVel.vx, robotVel.vy);
             double angularSpeed = Math.abs(robotVel.omega);
             boolean isRobotStationary = !driverInputDetected && linearSpeed < 0.05 && angularSpeed < 0.05;
@@ -154,7 +187,13 @@ public class BiobuzzTeleOp extends LinearOpMode {
                 if (!Double.isNaN(correctedHeading)) {
                     follower.setHeading(correctedHeading);
                 }
-            }
+            }*/
+            double VectorMagnitude = Math.max(Math.abs(forward)+Math.abs(strafe)+Math.abs(turn),1);
+
+            ((DcMotorEx) BackLeft).setVelocity(1000/VectorMagnitude*(forward-strafe+turn));
+            ((DcMotorEx) BackRight).setVelocity(1000/VectorMagnitude*(forward+strafe-turn));
+            ((DcMotorEx) FrontLeft).setVelocity(1000/VectorMagnitude*(forward+strafe+turn));
+            ((DcMotorEx) FrontRight).setVelocity(1000/VectorMagnitude*(forward-strafe-turn));
 
             // =========================================================================
             // GAMEPAD 2: OPERATOR MECHANISM CONTROLS
@@ -210,12 +249,15 @@ public class BiobuzzTeleOp extends LinearOpMode {
             if (gamepad2.crossWasPressed()) {
                 if (!gamepad2.options) {
                     intake.turnOn();
+                    intakeOn=true;
                 }
             } else if (gamepad2.squareWasPressed()) {
                 intake.reverse();
+                intakeOn = true;
             } else if (gamepad2.circleWasPressed()) {
                 if (!gamepad2.options) {
                     intake.turnOff();
+                    intakeOn = false;
                 }
             }
 
@@ -251,6 +293,7 @@ public class BiobuzzTeleOp extends LinearOpMode {
                         !(transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) || intake.isRampFrontBallPresent() || intake.isRampBackBallPresent()) ) {
                     // assume it is safe to turn off the intake subsystem
                     intake.turnOff();
+                    intakeOn = false;
                 }
             }
 
@@ -278,104 +321,10 @@ public class BiobuzzTeleOp extends LinearOpMode {
             // =========================================================================
 
             // --- Match & Target Info ---
-            Pose goalPose = MatchConfig.getAudienceGoalPose();
-            Pose robotPose = follower.pose();
-            double deltaX = goalPose.x() - robotPose.x();
-            double deltaY = goalPose.y() - robotPose.y();
-            double odomDistance = Math.hypot(deltaX, deltaY);
-            double odomBearingDeg = AngleUnit.normalizeDegrees(Math.toDegrees(Math.atan2(deltaY, deltaX) - robotPose.heading()));
-
-            AprilTagClusterDetection closestCluster = camera.getClosestClusterDetection();
-            double cameraDistance = (closestCluster != null && closestCluster.ftcPose != null) ? closestCluster.ftcPose.range : Double.NaN;
-            double cameraBearing = (closestCluster != null && closestCluster.ftcPose != null) ? closestCluster.ftcPose.bearing : Double.NaN;
-
-            telemetry.addLine("=== Match & Target Info ===");
-            telemetry.addData("Alliance Color", MatchConfig.allianceColor);
-            telemetry.addData("Hive State", MatchConfig.isAudienceGoalUp() ? "AUDIENCE GOAL UP" : "AUDIENCE GOAL DOWN");
-            telemetry.addData("Vision Heading Correction", visionHeadingCorrectionEnabled ? "ENABLED (G1:Circle to toggle)" : "DISABLED");
-            telemetry.addData("Robot Pose", String.format(Locale.US, "(%.1f, %.1f) %.1f°", robotPose.x(), robotPose.y(), Math.toDegrees(robotPose.heading())));
-            telemetry.addData("Distance to Goal", String.format(Locale.US, "Odom: %.1f in | Camera: %s",
-                    odomDistance, Double.isNaN(cameraDistance) ? "N/A" : String.format(Locale.US, "%.1f in", cameraDistance)));
-            telemetry.addData("Bearing to Goal", String.format(Locale.US, "Odom: %.1f° | Camera: %s",
-                    odomBearingDeg, Double.isNaN(cameraBearing) ? "N/A" : String.format(Locale.US, "%.1f°", cameraBearing)));
-
-            // --- Subsystems Key Data (Velocities & Transfer Servo Position) ---
-            telemetry.addLine("=== Subsystems Key Data ===");
-            telemetry.addData("Shooter Flywheels", String.format(Locale.US, "Status: %s | Target: %.0f | Actual: %.1f ticks/s",
-                    shooter.isRunning() ? "RUNNING" : "STOPPED", shooter.getTargetVelocity(), shooter.getAverageVelocity()));
-            telemetry.addData("Shooter Servos", String.format(Locale.US, "Mode: %s | Hood: %.0f ",
-                    shooter.isPollenPosition() ? "POLLEN" : "NECTAR", shooter.getHoodPosition()));
-            telemetry.addData("Intake Motor", String.format(Locale.US, "Status: %s | Target: %.0f | Actual: %.1f ticks/s",
-                    intakeOn ? "ON" : "OFF", intake.targetVelocityTicks, intake.getVelocity()));
-            telemetry.addData("Transfer System", String.format(Locale.US, "Power: %.2f | Raw Ticks: %.0f ",
-                    transfer.getPower(), transfer.getRawTicks()));
-            telemetry.addData("AUTO TRANSFER", String.format(Locale.US, "Mode: %s ",
-                    TransferConfig.AUTO_TRANSFER ? "ENABLED" : "DISABLED"));
-
-            // --- Controlled Ball Totals (Pollen vs Nectar) & Sensor Readings ---
-            int totalBalls = 0;
-            int totalPollen = 0;
-            int totalNectar = 0;
-
-            TransferSubsystem.BallColor[] slotColors = transfer.getSlotColors();
-            for (TransferSubsystem.BallColor color : slotColors) {
-                if (color == TransferSubsystem.BallColor.YELLOW) {
-                    ++totalPollen;
-                    ++totalBalls;
-                } else if (color == TransferSubsystem.BallColor.RED || color == TransferSubsystem.BallColor.BLUE) {
-                    ++totalNectar;
-                    ++totalBalls;
-                } else if (color != TransferSubsystem.BallColor.NONE && color != TransferSubsystem.BallColor.UNKNOWN) {
-                    ++totalBalls;
-                }
+            if(rateLimitTimer.milliseconds() >= 100){
+                rateLimitTimer.reset();
+                data_process();
             }
-
-            // Calculate distances
-            double topDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_TOP);
-            String topDistStr = (topDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", topDist);
-            double leftDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_LEFT);
-            String leftDistStr = (leftDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", leftDist);
-            double rightDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_RIGHT);
-            String rightDistStr = (rightDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rightDist);
-            double bbDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            String bbDistStr = (bbDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bbDist);
-            double bfDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_FRONT);
-            String bfDistStr = (bfDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bfDist);
-            double rampBackDist = intake.getRampBackDistanceMm();
-            String rampBackDistStr = (rampBackDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rampBackDist);
-            double rampFrontDist = intake.getRampFrontDistanceMm();
-            String rampFrontDistStr = (rampFrontDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rampFrontDist);
-
-
-            telemetry.addLine("=== Color & Distance Sensors ===");
-            telemetry.addData("Total", String.format(Locale.US, "Balls: %d/4 | Pollen: %d | Nectar: %d",
-                    totalBalls, totalPollen, totalNectar));
-
-            telemetry.addData("Ramp Back   -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
-                    intake.isRampBackBallPresent() ? "YES" : "NO ", rampBackDistStr, intake.detectRampBackColor()));
-            telemetry.addData("Ramp Front  -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
-                    intake.isRampFrontBallPresent() ? "YES" : "NO ", rampFrontDistStr, intake.detectRampFrontColor()));
-            telemetry.addData("Bottom Back -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK) ? "YES" : "NO ", bbDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_BACK)));
-            telemetry.addData("Bottom Front-", String.format(Locale.US, "%s | Dist: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) ? "YES" : "NO ", bfDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_FRONT)));
-
-            telemetry.addData("Top Slot    -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_TOP) ? "YES" : "NO ", topDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_TOP)));
-            telemetry.addData("Left Slot   -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) ? "YES" : "NO ", leftDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_LEFT)));
-            telemetry.addData("Right Slot  -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
-                    transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT) ? "YES" : "NO ", rightDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_RIGHT)));
-
-            // --- Controls Summary ---
-            telemetry.addLine("=== Controls Summary ===");
-            telemetry.addLine("G1: Joysticks = Field   | X-Cross = Hold Mode    | Circle = Vision Correct");
-            telemetry.addLine("G2: Left Bumper = Shoot | DPAD Left/Right = Hood | Triangle = Flywheels");
-            telemetry.addLine("G2: X-Cross = Intake ON | Circle = Intake OFF    | Square = EJECT");
-            telemetry.addLine("G2: D-Pad Up/Down = Depollinator UP/DOWN         | Right Bumper = 1 Slot Load");
-            telemetry.addLine("G2: Right Bumper + SHARE = 1/2 Slot Load (STOW)");
-            telemetry.addLine("G2: Triangle + SHARE = Auto Transfer MODE Toggle");
-            telemetry.addLine("G2: D-Pad Left/Right + OPTIONS = Pollen/Nectar Shoot mode");
 
             telemetry.update();
         }
@@ -386,5 +335,108 @@ public class BiobuzzTeleOp extends LinearOpMode {
         camera.stopDashboardStream();
 
     }
+    private void data_process() {
 
+        Pose goalPose = MatchConfig.getAudienceGoalPose();
+        Pose robotPose = follower.pose();
+        double deltaX = goalPose.x() - robotPose.x();
+        double deltaY = goalPose.y() - robotPose.y();
+        double odomDistance = Math.hypot(deltaX, deltaY);
+        double odomBearingDeg = AngleUnit.normalizeDegrees(Math.toDegrees(Math.atan2(deltaY, deltaX) - robotPose.heading()));
+
+        AprilTagClusterDetection closestCluster = camera.getClosestClusterDetection();
+        double cameraDistance = (closestCluster != null && closestCluster.ftcPose != null) ? closestCluster.ftcPose.range : Double.NaN;
+        double cameraBearing = (closestCluster != null && closestCluster.ftcPose != null) ? closestCluster.ftcPose.bearing : Double.NaN;
+
+
+
+        telemetry.addData("Alliance Color", MatchConfig.allianceColor);
+        telemetry.addData("Hive State", MatchConfig.isAudienceGoalUp() ? "AUDIENCE GOAL UP" : "AUDIENCE GOAL DOWN");
+        telemetry.addData("Vision Heading Correction", visionHeadingCorrectionEnabled ? "ENABLED (G1:Circle to toggle)" : "DISABLED");
+        telemetry.addData("Robot Pose", String.format(Locale.US, "(%.1f, %.1f) %.1f°", robotPose.x(), robotPose.y(), Math.toDegrees(robotPose.heading())));
+        telemetry.addData("Distance to Goal", String.format(Locale.US, "Odom: %.1f in | Camera: %s",
+                odomDistance, Double.isNaN(cameraDistance) ? "N/A" : String.format(Locale.US, "%.1f in", cameraDistance)));
+        telemetry.addData("Bearing to Goal", String.format(Locale.US, "Odom: %.1f° | Camera: %s",
+                odomBearingDeg, Double.isNaN(cameraBearing) ? "N/A" : String.format(Locale.US, "%.1f°", cameraBearing)));
+
+
+        // --- Subsystems Key Data (Velocities & Transfer Servo Position) ---
+        telemetry.addLine("=== Subsystems Key Data ===");
+        telemetry.addData("Shooter Flywheels", String.format(Locale.US, "Status: %s | Target: %.0f | Actual: %.1f ticks/s",
+                shooter.isRunning() ? "RUNNING" : "STOPPED", shooter.getTargetVelocity(), shooter.getAverageVelocity()));
+        telemetry.addData("Shooter Servos", String.format(Locale.US, "Mode: %s | Hood: %.0f ",
+                shooter.isPollenPosition() ? "POLLEN" : "NECTAR", shooter.getHoodPosition()));
+        telemetry.addData("Intake Motor", String.format(Locale.US, "Status: %s | Target: %.0f | Actual: %.1f ticks/s",
+                intakeOn ? "ON" : "OFF", intake.targetVelocityTicks, intake.getVelocity()));
+        telemetry.addData("Transfer System", String.format(Locale.US, "Power: %.2f | Raw Ticks: %.0f ",
+                transfer.getPower(), transfer.getRawTicks()));
+        telemetry.addData("AUTO TRANSFER", String.format(Locale.US, "Mode: %s ",
+                TransferConfig.AUTO_TRANSFER ? "ENABLED" : "DISABLED"));
+
+        // --- Controlled Ball Totals (Pollen vs Nectar) & Sensor Readings ---
+        int totalBalls = 0;
+        int totalPollen = 0;
+        int totalNectar = 0;
+
+        TransferSubsystem.BallColor[] slotColors = transfer.getSlotColors();
+        for (TransferSubsystem.BallColor color : slotColors) {
+            if (color == TransferSubsystem.BallColor.YELLOW) {
+                ++totalPollen;
+                ++totalBalls;
+            } else if (color == TransferSubsystem.BallColor.RED || color == TransferSubsystem.BallColor.BLUE) {
+                ++totalNectar;
+                ++totalBalls;
+            } else if (color != TransferSubsystem.BallColor.NONE && color != TransferSubsystem.BallColor.UNKNOWN) {
+                ++totalBalls;
+            }
+        }
+
+        // Calculate distances
+        double topDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_TOP);
+        String topDistStr = (topDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", topDist);
+        double leftDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_LEFT);
+        String leftDistStr = (leftDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", leftDist);
+        double rightDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_RIGHT);
+        String rightDistStr = (rightDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rightDist);
+        double bbDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_BACK);
+        String bbDistStr = (bbDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bbDist);
+        double bfDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_FRONT);
+        String bfDistStr = (bfDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bfDist);
+        double rampBackDist = intake.getRampBackDistanceMm();
+        String rampBackDistStr = (rampBackDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rampBackDist);
+        double rampFrontDist = intake.getRampFrontDistanceMm();
+        String rampFrontDistStr = (rampFrontDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rampFrontDist);
+
+
+        telemetry.addLine("=== Color & Distance Sensors ===");
+        telemetry.addData("Total", String.format(Locale.US, "Balls: %d/4 | Pollen: %d | Nectar: %d",
+                totalBalls, totalPollen, totalNectar));
+
+        telemetry.addData("Ramp Back   -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                intake.isRampBackBallPresent() ? "YES" : "NO ", rampBackDistStr, intake.detectRampBackColor()));
+        telemetry.addData("Ramp Front  -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                intake.isRampFrontBallPresent() ? "YES" : "NO ", rampFrontDistStr, intake.detectRampFrontColor()));
+        telemetry.addData("Bottom Back -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_BACK) ? "YES" : "NO ", bbDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_BACK)));
+        telemetry.addData("Bottom Front-", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) ? "YES" : "NO ", bfDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_BOTTOM_FRONT)));
+
+        telemetry.addData("Top Slot    -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_TOP) ? "YES" : "NO ", topDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_TOP)));
+        telemetry.addData("Left Slot   -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) ? "YES" : "NO ", leftDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_LEFT)));
+        telemetry.addData("Right Slot  -", String.format(Locale.US, "%s | Dist: %s | Color: %s",
+                transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT) ? "YES" : "NO ", rightDistStr, transfer.detectSlotColor(TransferSubsystem.SENSOR_RIGHT)));
+
+        // --- Controls Summary ---
+        telemetry.addLine("=== Controls Summary ===");
+        telemetry.addLine("G1: Joysticks = Field   | X-Cross = Hold Mode    | Circle = Vision Correct");
+        telemetry.addLine("G2: Left Bumper = Shoot | DPAD Left/Right = Hood | Triangle = Flywheels");
+        telemetry.addLine("G2: X-Cross = Intake ON | Circle = Intake OFF    | Square = EJECT");
+        telemetry.addLine("G2: D-Pad Up/Down = Depollinator UP/DOWN         | Right Bumper = 1 Slot Load");
+        telemetry.addLine("G2: Right Bumper + SHARE = 1/2 Slot Load (STOW)");
+        telemetry.addLine("G2: Triangle + SHARE = Auto Transfer MODE Toggle");
+        telemetry.addLine("G2: D-Pad Left/Right + OPTIONS = Pollen/Nectar Shoot mode");
+
+    }
 }

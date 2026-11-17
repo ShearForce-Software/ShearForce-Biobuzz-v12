@@ -416,7 +416,8 @@ public class TransferSubsystem {
             case 0: return isSensorDetectingBall(SENSOR_TOP);
             case 1: return isSensorDetectingBall(SENSOR_LEFT);
             case 2: return isSensorDetectingBall(SENSOR_RIGHT);
-            case 3: return isSensorDetectingBall(SENSOR_BOTTOM_BACK) || isSensorDetectingBall(SENSOR_BOTTOM_FRONT);
+            case 3: return isSensorDetectingBall(SENSOR_BOTTOM_BACK);
+            case 4: return isSensorDetectingBall(SENSOR_BOTTOM_FRONT);
             default: return false;
         }
     }

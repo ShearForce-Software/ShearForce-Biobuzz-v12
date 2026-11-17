@@ -3,8 +3,10 @@ package org.firstinspires.ftc.teamcode.Biobuzz.Auto;
 import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.conditional;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
+import static com.pedropathing.ivy.groups.Groups.parallel;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
@@ -17,7 +19,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Biobuzz.pedro.Constants;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
 
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
@@ -31,8 +36,12 @@ public class RedTVPlan2 extends LinearOpMode {
     public void runOpMode() {
         Scheduler.reset();
 
+        MatchConfig.allianceColor = MatchConfig.AllianceColor.RED;
         // Instantiate subsystems
         follower = Constants.create(hardwareMap);
+        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
+        TransferSubsystem transfer = new TransferSubsystem(hardwareMap);
+        ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
@@ -63,15 +72,26 @@ public class RedTVPlan2 extends LinearOpMode {
                 sequential(
                         instant(matchTimer::reset),
 
-                        // Segment 1: Shoot preload and drive to garden and collect pollen
+                        waitMs(8000),
+                        shooter.firePositionCommand(),
+
+                        //from start position where you shoot to the flower pose
+                        parallel(
+                                follow(follower, shootToFlower),
+                                intake.turnOnCommand()
+                        ),
+
+                        //from the flower turn around and shoot what you intook from the flower
+                        follow(follower, flowerToShoot2),
+                        waitMs(8000),
+                        shooter.firePositionCommand(),
 
 
 
-                        // Segment 2: Drive out of garden and back to shoot pose
 
 
 
-                        // Segment 3: drive to the flower and collect pollen then drive back to the shoot pose
+
 
 
 

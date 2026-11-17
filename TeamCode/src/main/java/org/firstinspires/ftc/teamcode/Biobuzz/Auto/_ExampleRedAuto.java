@@ -11,6 +11,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Scheduler;
 
 // Static Ivy Command Structure Imports
+import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.Scheduler.schedule;
 import static com.pedropathing.ivy.commands.Commands.conditional;
@@ -61,24 +62,45 @@ public class _ExampleRedAuto extends LinearOpMode {
         camera.queryCameraControlBoundsAndApply();
 
         // Target Poses
-        Pose startPose = new Pose(60, 135, Math.toRadians(90));
-        Pose audienceShootPose = new Pose(49, 130, Math.toRadians(90));
-        Pose gardenPose = new Pose(10, 130, Math.toRadians(90));
-        Pose backstageShootPose = new Pose(49, 20, Math.toRadians(270));
+        Pose startPose = new Pose(33, 9, Math.toRadians(180));
+        Pose gardenPose = new Pose(11.0, 11.0, Math.toRadians(180));
+
+        Pose audienceShootPose = new Pose(60, 24, Math.toRadians(180));
+        Pose backstageShootPose = new Pose(36, 111, Math.toRadians(0));
         Pose flowerPose = new Pose(10, 90, Math.toRadians(180));
-        Pose parkPose = new Pose(10, 10, Math.toRadians(90));
+        Pose parkPose = new Pose(10, 10, Math.toRadians(0));
 
         // Set starting pose
         follower.setPose(startPose);
 
         // Define Path Segments
         Path driveToGarden = line(startPose, gardenPose).linear(startPose, gardenPose);
+
         Path driveToAudienceShoot1 = line(gardenPose, audienceShootPose).linear(gardenPose, audienceShootPose);
-        Path driveToBackstageShoot1 = line(audienceShootPose, backstageShootPose).linear(audienceShootPose, backstageShootPose);
-        Path driveToFlower = line(audienceShootPose, flowerPose).linear(audienceShootPose, flowerPose);
+
+        Path driveToTVShoot1 = curve(audienceShootPose
+                , new Pose(24, 48, Math.toRadians(0))
+                , new Pose(24, 60, Math.toRadians(0))
+                , new Pose(20, 96, Math.toRadians(0))
+                , backstageShootPose).linear(Math.toRadians(180), Math.toRadians(0));
+
+        Path driveToRedAudienceFlower = curve(audienceShootPose
+                , new Pose(20, 90, Math.toRadians(0))
+                , new Pose(24, 72, Math.toRadians(0))
+                , new Pose(30, 60, Math.toRadians(0))
+                , flowerPose).linear(audienceShootPose, flowerPose);
+
         Path driveToAudienceShoot2 = line(flowerPose, audienceShootPose).linear(flowerPose, audienceShootPose);
-        Path driveToBackstageShoot2 = line(audienceShootPose, backstageShootPose).linear(audienceShootPose, backstageShootPose);
-        Path driveToPark = line(audienceShootPose, parkPose).linear(audienceShootPose, parkPose);
+
+        Path driveToTVShoot2 = curve(flowerPose
+                , new Pose(24, 48, Math.toRadians(0))
+                , new Pose(30, 60, Math.toRadians(0))
+                , new Pose(20, 90, Math.toRadians(0))
+                , backstageShootPose).linear(audienceShootPose, backstageShootPose);
+
+        Path driveToPark = curve(backstageShootPose
+                , new Pose(30, 96, Math.toRadians(0))
+                , parkPose).linear(backstageShootPose, parkPose);
 
         // Build the Ivy Autonomous Command Sequence
         schedule(
@@ -110,14 +132,14 @@ public class _ExampleRedAuto extends LinearOpMode {
                                 shooter.firePositionCommand(),
                                 // ELSE: Drive to backstage side and shoot
                                 sequential(
-                                        follow(follower, driveToBackstageShoot1),
+                                        follow(follower, driveToTVShoot1),
                                         shooter.firePositionCommand()
                                 )
                         ),
 
                         // 5. Drive to the audience side red flower, turning on the intake in parallel
                         parallel(
-                                follow(follower, driveToFlower),
+                                follow(follower, driveToRedAudienceFlower),
                                 intake.turnOnCommand(),
                                 transfer.rotateForwardCommand()
                         ),
@@ -140,7 +162,7 @@ public class _ExampleRedAuto extends LinearOpMode {
                                 shooter.firePositionCommand(),
                                 // ELSE: Drive to backstage side and shoot
                                 sequential(
-                                        follow(follower, driveToBackstageShoot2),
+                                        follow(follower, driveToTVShoot2),
                                         shooter.firePositionCommand()
                                 )
                         ),
