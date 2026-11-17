@@ -2,11 +2,11 @@
 
 ## Prompt #1
 
-Review BiobuzzTeleOp.java, provide recommendations on what to change to fix extreme latency problems we are seeing from the drive controls.  The goal of this class is to provide highly accurate control of the robot from gamepad1 while a second operator controls and exercises all of the subsystems in parallel.
+Review BiobuzzTeleOp.java, provide recommendations on what to change to fix extreme latency problems we are seeing from the drive controls.  The goal of this class is to provide highly accurate control of the robot from gamepad1 while a second operator controls and exercises all of the subsystems in parallel.  Provide a detailed list of the potential sources of latency in this code along with a prioritized list of recommended changes to implement. 
 
 ## Prompt #2
 
-Update BiobuzzTeleOp.java to have support for both Field Centric drive mode utilizing pedro pathing access to our pinpoint odometry system and Robot Centric Drive mode.  The gamepad1 operator should be able to easily switch between the two modes as needed and should be able to manually reset the heading to zero for field centric in case of a heading drift issue.  The robot should default to robot centric mode.
+Update BiobuzzTeleOp.java to have support for both Field Centric drive mode utilizing Pedro pathing access to our pinpoint odometry system and Robot Centric Drive mode.  The gamepad1 operator should be able to easily switch between the two modes as needed and should be able to manually reset the heading to zero for field centric in case of a heading drift issue.  The robot should default to robot centric mode.
 
 ## Prompt #3
 
