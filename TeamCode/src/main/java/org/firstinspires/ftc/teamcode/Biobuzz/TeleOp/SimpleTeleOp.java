@@ -63,7 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Simple TeleOp", group="Linear OpMode")
+@TeleOp(name="Simple TeleOp Drive Test", group="Testing")
 public class SimpleTeleOp extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.

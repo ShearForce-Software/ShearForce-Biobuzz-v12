@@ -102,15 +102,16 @@ public class BiobuzzTeleOp extends OpMode {
         shooter.hoodMinPosition();
         visionHeadingCorrectionEnabled = false;
 
-        // Start dedicated asynchronous background thread for I2C color sensor updates (~50 Hz)
+        // Start dedicated asynchronous background thread for I2C color sensor updates (~15 Hz)
         colorSensorThreadRunning = true;
         colorSensorThread = new Thread(() -> {
             while (colorSensorThreadRunning && !Thread.currentThread().isInterrupted()) {
                 try {
-                    if (transfer != null) {
+                    // don't bother updating the color sensors while the transfer is moving
+                    if ((transfer != null) && !transfer.IsBusy() && !transfer.isRotating()) {
                         transfer.UpdateColorSensors();
                     }
-                    Thread.sleep(20);
+                    Thread.sleep(60);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
@@ -174,6 +175,7 @@ public class BiobuzzTeleOp extends OpMode {
         double strafe = gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
 
+        // Command the robot to drive with the joystick inputs
         DriveRobot(forward, strafe, turn);
 
         // Rate-limited vision heading drift correction when stationary (checked every 500ms)

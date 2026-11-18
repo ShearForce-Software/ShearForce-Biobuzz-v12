@@ -90,7 +90,7 @@ public class TransferSubsystem {
         encoderMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Initialize cached normalized colors array
-        for (int i = 0; i < SENSOR_COUNT; i++) {
+        for (int i = 0; i < SENSOR_COUNT; ++i) {
             cachedNormalizedColors[i] = new NormalizedRGBA();
             cachedDistanceMm[i] = Double.MAX_VALUE;
             cachedBallColor[i] = BallColor.NONE;
@@ -108,7 +108,7 @@ public class TransferSubsystem {
                 TransferConfig.COLOR_SENSOR_RAMP_FRONT_NAME
         };
 
-        for (int i = 0; i < SENSOR_COUNT; i++) {
+        for (int i = 0; i < SENSOR_COUNT; ++i) {
             try {
                 colorSensors[i] = hardwareMap.get(NormalizedColorSensor.class, sensorNames[i]);
                 if (colorSensors[i] instanceof DistanceSensor) {
@@ -131,7 +131,7 @@ public class TransferSubsystem {
      * This is the ONLY method permitted to make direct hardware access calls to the physical color sensors.
      */
     public void UpdateColorSensors() {
-        for (int i = 0; i < SENSOR_COUNT; i++) {
+        for (int i = 0; i < SENSOR_COUNT; ++i) {
             // Read distance
             if (distanceSensors[i] != null) {
                 try {
@@ -454,7 +454,7 @@ public class TransferSubsystem {
 
     public boolean[] getSlotOccupancy() {
         boolean[] occupancy = new boolean[4];
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; ++i) {
             occupancy[i] = isSlotOccupied(i);
         }
         return occupancy;
@@ -462,7 +462,7 @@ public class TransferSubsystem {
 
     public BallColor[] getSlotColors() {
         BallColor[] colors = new BallColor[4];
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; ++i) {
             colors[i] = detectSlotColor(i);
         }
         return colors;
@@ -470,9 +470,9 @@ public class TransferSubsystem {
 
     public int getBallCount() {
         int count = 0;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; ++i) {
             if (isSlotOccupied(i)) {
-                count++;
+                ++count;
             }
         }
         return count;
@@ -522,8 +522,8 @@ public class TransferSubsystem {
 
     public int getRampBallCount() {
         int count = 0;
-        if (isRampBackBallPresent()) count++;
-        if (isRampFrontBallPresent()) count++;
+        if (isRampBackBallPresent()) ++count;
+        if (isRampFrontBallPresent()) ++count;
         return count;
     }
 

@@ -26,7 +26,7 @@ public class TransferConfig {
     public static double STOP_POWER = 0.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
-    public static double TICKS_PER_REV = 6192.0; //8192
+    public static double TICKS_PER_REV = 8192; //6192.0; //8192
     public static boolean ENCODER_REVERSED = true;
 
     // Color Sensor Detection Thresholds (Combined Transfer & Intake Ramp)
