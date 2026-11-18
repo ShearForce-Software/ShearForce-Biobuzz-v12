@@ -5,6 +5,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -62,6 +63,11 @@ public class BiobuzzTeleOp extends OpMode {
     private final ElapsedTime rateLimitTimer = new ElapsedTime();
     private final ElapsedTime visionCorrectionTimer = new ElapsedTime();
 
+    private DcMotor frontLeftDrive = null;
+    private DcMotor backLeftDrive = null;
+    private DcMotor frontRightDrive = null;
+    private DcMotor backRightDrive = null;
+
     @Override
     public void init() {
         // Instantiate Subsystems
@@ -70,6 +76,16 @@ public class BiobuzzTeleOp extends OpMode {
         transfer = new TransferSubsystem(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
         camera = new CameraSubsystem(hardwareMap);
+
+        frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront_leftOdometry");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "leftRear");
+        frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront_centerOdometry");
+        backRightDrive = hardwareMap.get(DcMotor.class, "rightRear_rightOdometry");
+
+        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
+        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // Disable camera streaming during match play to minimize CPU and network load
         camera.stopDashboardStream();
@@ -157,6 +173,48 @@ public class BiobuzzTeleOp extends OpMode {
         double strafe = gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
 
+        double frontLeftPower  = forward + strafe + turn;
+        double frontRightPower = forward - strafe - turn;
+        double backLeftPower   = forward - strafe + turn;
+        double backRightPower  = forward + strafe - turn;
+
+        double max;
+        // Normalize the values so no wheel power exceeds 100%
+        // This ensures that the robot maintains the desired motion.
+        max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
+        max = Math.max(max, Math.abs(backLeftPower));
+        max = Math.max(max, Math.abs(backRightPower));
+
+        if (max > 1.0) {
+            frontLeftPower  /= max;
+            frontRightPower /= max;
+            backLeftPower   /= max;
+            backRightPower  /= max;
+        }
+
+        // This is test code:
+        //
+        // Uncomment the following code to test your motor directions.
+        // Each button should make the corresponding motor run FORWARD.
+        //   1) First get all the motors to take to correct positions on the robot
+        //      by adjusting your Robot Configuration if necessary.
+        //   2) Then make sure they run in the correct direction by modifying the
+        //      the setDirection() calls above.
+        // Once the correct motors move in the correct direction re-comment this code.
+
+            /*
+            frontLeftPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
+            backLeftPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
+            frontRightPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
+            backRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
+            */
+
+        // Send calculated power to wheels
+        frontLeftDrive.setPower(frontLeftPower);
+        frontRightDrive.setPower(frontRightPower);
+        backLeftDrive.setPower(backLeftPower);
+        backRightDrive.setPower(backRightPower);
+
         double targetForward = forward;
         double targetStrafe = strafe;
 
@@ -171,7 +229,7 @@ public class BiobuzzTeleOp extends OpMode {
 
         // Use PedroPathing methodology for manual drive control
         if (follower != null) {
-            follower.manual(targetForward, targetStrafe, turn);
+           // follower.manual(targetForward, targetStrafe, turn);
         }
 
         // Rate-limited vision heading drift correction when stationary (checked every 500ms)
