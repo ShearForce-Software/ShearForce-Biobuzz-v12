@@ -17,15 +17,12 @@ import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
- * Subsystem for managing the Transfer mechanism.
+ * Subsystem for managing the Transfer mechanism and centralized Color/Distance Sensors.
  * Features:
  * - Continuous Rotation Servo to rotate the transfer mechanism
  * - REV Through Bore Encoder (read via DcMotorEx port) to track rotation, position, and velocity
- * - 4 Ball Slots (Top, Left, Right, Bottom) with 5 Color / Distance Sensors:
- *   - Top Slot (Sensor 0)
- *   - Left Slot (Sensor 1)
- *   - Right Slot (Sensor 2)
- *   - Bottom Slot (Sensor 3 = Bottom Back, Sensor 4 = Bottom Front)
+ * - Centralized UpdateColorSensors() procedure querying all 7 physical color sensors (5 transfer + 2 intake ramp)
+ *   and caching values in local member variables to eliminate redundant hardware I2C calls.
  */
 public class TransferSubsystem {
 
@@ -52,19 +49,28 @@ public class TransferSubsystem {
         }
     }
 
-    // Sensor Index Constants
+    // Sensor Index Constants (0 to 4: Transfer, 5 to 6: Intake Ramp)
     public static final int SENSOR_TOP = 0;
     public static final int SENSOR_LEFT = 1;
     public static final int SENSOR_RIGHT = 2;
     public static final int SENSOR_BOTTOM_BACK = 3;
     public static final int SENSOR_BOTTOM_FRONT = 4;
-    public static final int SENSOR_COUNT = 5;
+    public static final int SENSOR_RAMP_BACK = 5;
+    public static final int SENSOR_RAMP_FRONT = 6;
+    public static final int SENSOR_COUNT = 7;
 
     private final CRServo transferServo;
     private final DcMotorEx encoderMotor;
 
+    // Physical hardware sensors (queried ONLY in UpdateColorSensors)
     private final NormalizedColorSensor[] colorSensors = new NormalizedColorSensor[SENSOR_COUNT];
     private final DistanceSensor[] distanceSensors = new DistanceSensor[SENSOR_COUNT];
+
+    // Local cached variables storing color sensor data
+    private final double[] cachedDistanceMm = new double[SENSOR_COUNT];
+    private final NormalizedRGBA[] cachedNormalizedColors = new NormalizedRGBA[SENSOR_COUNT];
+    private final boolean[] cachedBallPresent = new boolean[SENSOR_COUNT];
+    private final BallColor[] cachedBallColor = new BallColor[SENSOR_COUNT];
 
     private double encoderOffsetTicks = 0.0;
 
@@ -83,13 +89,23 @@ public class TransferSubsystem {
         encoderMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         encoderMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Hardware map 5 color / distance sensors
+        // Initialize cached normalized colors array
+        for (int i = 0; i < SENSOR_COUNT; i++) {
+            cachedNormalizedColors[i] = new NormalizedRGBA();
+            cachedDistanceMm[i] = Double.MAX_VALUE;
+            cachedBallColor[i] = BallColor.NONE;
+            cachedBallPresent[i] = false;
+        }
+
+        // Hardware map all 7 color / distance sensors (5 transfer + 2 intake ramp)
         String[] sensorNames = {
                 TransferConfig.COLOR_SENSOR_TOP_NAME,
                 TransferConfig.COLOR_SENSOR_LEFT_NAME,
                 TransferConfig.COLOR_SENSOR_RIGHT_NAME,
                 TransferConfig.COLOR_SENSOR_BOTTOM_BACK_NAME,
-                TransferConfig.COLOR_SENSOR_BOTTOM_FRONT_NAME
+                TransferConfig.COLOR_SENSOR_BOTTOM_FRONT_NAME,
+                TransferConfig.COLOR_SENSOR_RAMP_BACK_NAME,
+                TransferConfig.COLOR_SENSOR_RAMP_FRONT_NAME
         };
 
         for (int i = 0; i < SENSOR_COUNT; i++) {
@@ -105,60 +121,97 @@ public class TransferSubsystem {
                 distanceSensors[i] = null;
             }
         }
+
+        // Perform initial sensor read to populate cache
+        UpdateColorSensors();
+    }
+
+    /**
+     * Centralized procedure to query all physical color sensors and update local cached variables.
+     * This is the ONLY method permitted to make direct hardware access calls to the physical color sensors.
+     */
+    public void UpdateColorSensors() {
+        for (int i = 0; i < SENSOR_COUNT; i++) {
+            // Read distance
+            if (distanceSensors[i] != null) {
+                try {
+                    cachedDistanceMm[i] = distanceSensors[i].getDistance(DistanceUnit.MM);
+                } catch (Exception e) {
+                    cachedDistanceMm[i] = Double.MAX_VALUE;
+                }
+            } else {
+                cachedDistanceMm[i] = Double.MAX_VALUE;
+            }
+
+            // Read normalized colors
+            if (colorSensors[i] != null) {
+                try {
+                    cachedNormalizedColors[i] = colorSensors[i].getNormalizedColors();
+                } catch (Exception e) {
+                    cachedNormalizedColors[i] = new NormalizedRGBA();
+                }
+            } else {
+                cachedNormalizedColors[i] = new NormalizedRGBA();
+            }
+
+            // Compute ball presence and color from cached readings
+            double dist = cachedDistanceMm[i];
+            NormalizedRGBA rgba = cachedNormalizedColors[i];
+            float totalLight = rgba.red + rgba.green + rgba.blue;
+            boolean present = (dist <= TransferConfig.DISTANCE_THRESHOLD_MM) || (totalLight > 0.15f);
+            cachedBallPresent[i] = present;
+
+            if (!present) {
+                cachedBallColor[i] = BallColor.NONE;
+            } else if (totalLight <= 0.01f) {
+                cachedBallColor[i] = BallColor.UNKNOWN;
+            } else {
+                float redRatio = rgba.red / totalLight;
+                float greenRatio = rgba.green / totalLight;
+                float blueRatio = rgba.blue / totalLight;
+
+                if (redRatio >= TransferConfig.YELLOW_RED_MIN_RATIO && greenRatio >= TransferConfig.YELLOW_GREEN_MIN_RATIO) {
+                    cachedBallColor[i] = BallColor.YELLOW;
+                } else if (redRatio >= TransferConfig.RED_MIN_RATIO) {
+                    cachedBallColor[i] = BallColor.RED;
+                } else if (blueRatio >= TransferConfig.BLUE_MIN_RATIO) {
+                    cachedBallColor[i] = BallColor.BLUE;
+                } else {
+                    cachedBallColor[i] = BallColor.UNKNOWN;
+                }
+            }
+        }
     }
 
     // --- Servo Control Methods ---
 
-    /**
-     * Sets raw power to the continuous rotation transfer servo (-1.0 to 1.0).
-     */
     public void setPower(double power) {
         transferServo.setPower(power);
     }
 
-    /**
-     * Rotates the transfer forward using configured power.
-     */
     public void rotateForward() {
         setPower(TransferConfig.FORWARD_POWER);
     }
 
-    /**
-     * Rotates the transfer in reverse using configured power.
-     */
     public void rotateReverse() {
         setPower(TransferConfig.REVERSE_POWER);
     }
 
-    /**
-     * Stops the transfer continuous rotation servo.
-     */
     public void stop() {
         isAdvancingSlot = false;
         setPower(TransferConfig.STOP_POWER);
     }
 
-    /**
-     * Returns true if the transfer servo is active.
-     */
     public boolean isRotating() {
         return Math.abs(transferServo.getPower()) > 0.01;
     }
 
-    /**
-     * Returns current servo power level.
-     */
     public double getPower() {
         return transferServo.getPower();
     }
 
     // --- Slot Advancement Methods (1/4 Full Rotation = 1 Slot) ---
 
-    /**
-     * Rotates the transfer 1/4 of a full rotation (1 slot) forward or reverse based on TransferConfig.TICKS_PER_REV.
-     *
-     * @param forward true to rotate forward 1 slot, false to rotate reverse 1 slot.
-     */
     public void advance1Slot(boolean forward) {
         this.advanceForward = forward;
         double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
@@ -172,45 +225,27 @@ public class TransferSubsystem {
         isAdvancingSlot = true;
     }
 
-    /**
-     * Rotates the transfer forward by 1 slot (1/4 full rotation).
-     */
     public void Shoot1Ball() {
         advance1Slot(true);
     }
 
-    /**
-     * Rotates the transfer forward by 5 slots (1 full rotation + 1/4 rotation for extra measure).
-     */
     public void ShootAllBalls() {
         this.advanceForward = true;
         double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
-
-        // rotate 5 slots (all balls should shoot out)
         targetEncoderTicks = getRawTicks() + TransferConfig.TICKS_PER_REV + quarterRotationTicks;
         rotateForward();
-
         isAdvancingSlot = true;
-
     }
 
-    /**
-     * Rotates the transfer in reverse by 1 slot (1/4 full rotation).
-     */
     public void Load1Ball() {
         advance1Slot(false);
     }
 
-    /**
-     * Rotates the transfer in reverse by 1/2 slot (1/8 full rotation)
-     * to keep bottom ball from falling out until ready to shoot
-     */
     public void StowBalls() {
         this.advanceForward = false;
         double eighthRotationTicks = TransferConfig.TICKS_PER_REV / 8.0;
         targetEncoderTicks = getRawTicks() - eighthRotationTicks;
         rotateReverse();
-
         isAdvancingSlot = true;
     }
 
@@ -218,12 +253,8 @@ public class TransferSubsystem {
         return isAdvancingSlot;
     }
 
-    /**
-     * Returns the transfer to the zero position (ready to take in first ball)
-     */
     public void ReturnToZeroPosition() {
         targetEncoderTicks = 0;
-
         if (targetEncoderTicks != getRawTicks()) {
             if (targetEncoderTicks > getRawTicks()) {
                 this.advanceForward = true;
@@ -236,25 +267,17 @@ public class TransferSubsystem {
         }
     }
 
-    /**
-     * Checks if the 1 slot (1/4 rotation) movement has completed and stops the servo when target is reached.
-     *
-     * @return true if movement is finished or inactive.
-     */
     public boolean isAdvance1SlotComplete() {
         if (!isAdvancingSlot) {
             return true;
         }
 
-        // if we were shooting
         if (advanceForward) {
             if (getRawTicks() >= targetEncoderTicks) {
                 stop();
-
                 if (TransferConfig.AUTO_TRANSFER) {
                     ReturnToZeroPosition();
-                }
-                else {
+                } else {
                     return true;
                 }
             }
@@ -267,9 +290,6 @@ public class TransferSubsystem {
         return false;
     }
 
-    /**
-     * Call inside your OpMode loop to monitor and complete active 1-slot advancement movements.
-     */
     public void update() {
         if (isAdvancingSlot) {
             isAdvance1SlotComplete();
@@ -278,9 +298,6 @@ public class TransferSubsystem {
 
     // --- REV Through Bore Encoder Methods ---
 
-    /**
-     * Returns the raw encoder ticks, taking inversion and zero offset into account.
-     */
     public double getRawTicks() {
         double raw = encoderMotor.getCurrentPosition();
         if (TransferConfig.ENCODER_REVERSED) {
@@ -289,9 +306,6 @@ public class TransferSubsystem {
         return raw - encoderOffsetTicks;
     }
 
-    /**
-     * Resets the encoder position count to zero.
-     */
     public void resetEncoder() {
         double raw = encoderMotor.getCurrentPosition();
         if (TransferConfig.ENCODER_REVERSED) {
@@ -300,117 +314,59 @@ public class TransferSubsystem {
         encoderOffsetTicks = raw;
     }
 
-    /**
-     * Returns the total rotations tracked by the REV Through Bore Encoder.
-     */
     public double getRotations() {
         return getRawTicks() / TransferConfig.TICKS_PER_REV;
     }
 
-    /**
-     * Returns total position in degrees.
-     */
     public double getDegrees() {
         return getRotations() * 360.0;
     }
 
-    /**
-     * Returns total position in radians.
-     */
     public double getRadians() {
         return getRotations() * 2.0 * Math.PI;
     }
 
-    /**
-     * Returns encoder velocity in ticks per second.
-     */
     public double getVelocityTicksPerSec() {
         double vel = encoderMotor.getVelocity();
         return TransferConfig.ENCODER_REVERSED ? -vel : vel;
     }
 
-    /**
-     * Returns encoder rotation speed in RPM.
-     */
     public double getVelocityRPM() {
         return (getVelocityTicksPerSec() / TransferConfig.TICKS_PER_REV) * 60.0;
     }
 
-    // --- Individual Physical Sensor Methods (0 to 4) ---
+    // --- Accessor Methods using Stored Local Variables (NO direct hardware calls) ---
 
-    /**
-     * Returns normalized RGBA values for a specific physical sensor index (0 to 4).
-     */
     public NormalizedRGBA getNormalizedColors(int sensorIndex) {
-        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT || colorSensors[sensorIndex] == null) {
+        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT) {
             return new NormalizedRGBA();
         }
-        return colorSensors[sensorIndex].getNormalizedColors();
+        return cachedNormalizedColors[sensorIndex];
     }
 
-    /**
-     * Returns distance in mm for a specific physical sensor index (0 to 4).
-     * Returns Double.MAX_VALUE if sensor is unavailable.
-     */
     public double getDistanceMm(int sensorIndex) {
-        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT || distanceSensors[sensorIndex] == null) {
+        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT) {
             return Double.MAX_VALUE;
         }
-        try {
-            return distanceSensors[sensorIndex].getDistance(DistanceUnit.MM);
-        } catch (Exception e) {
-            return Double.MAX_VALUE;
-        }
+        return cachedDistanceMm[sensorIndex];
     }
 
-    /**
-     * Checks if a specific physical sensor index (0 to 4) detects a ball.
-     */
     public boolean isSensorDetectingBall(int sensorIndex) {
-        double dist = getDistanceMm(sensorIndex);
-        if (dist <= TransferConfig.DISTANCE_THRESHOLD_MM) {
-            return true;
+        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT) {
+            return false;
         }
-        NormalizedRGBA colors = getNormalizedColors(sensorIndex);
-        float totalLight = colors.red + colors.green + colors.blue;
-        return totalLight > 0.15f;
+        return cachedBallPresent[sensorIndex];
     }
 
-    /**
-     * Classifies the ball color detected by a specific physical sensor index (0 to 4).
-     */
     public BallColor detectSensorColor(int sensorIndex) {
-        if (!isSensorDetectingBall(sensorIndex)) {
+        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT) {
             return BallColor.NONE;
         }
-
-        NormalizedRGBA colors = getNormalizedColors(sensorIndex);
-        float total = colors.red + colors.green + colors.blue;
-        if (total <= 0.01f) {
-            return BallColor.UNKNOWN;
-        }
-
-        float redRatio = colors.red / total;
-        float greenRatio = colors.green / total;
-        float blueRatio = colors.blue / total;
-
-        if (redRatio >= TransferConfig.YELLOW_RED_MIN_RATIO && greenRatio >= TransferConfig.YELLOW_GREEN_MIN_RATIO) {
-            return BallColor.YELLOW;
-        } else if (redRatio >= TransferConfig.RED_MIN_RATIO) {
-            return BallColor.RED;
-        } else if (blueRatio >= TransferConfig.BLUE_MIN_RATIO) {
-            return BallColor.BLUE;
-        }
-
-        return BallColor.UNKNOWN;
+        return cachedBallColor[sensorIndex];
     }
 
     // --- Slot-Based Methods (Top=0, Left=1, Right=2, Bottom=3) ---
 
-    /**
-     * Checks if a ball is present in a specific slot (0=Top, 1=Left, 2=Right, 3=Bottom).
-     * Note: Bottom slot (index 3) is occupied if EITHER Bottom Back OR Bottom Front sensor detects a ball.
-     */
     public boolean isSlotOccupied(int slotIndex) {
         switch (slotIndex) {
             case 0: return isSensorDetectingBall(SENSOR_TOP);
@@ -426,16 +382,10 @@ public class TransferSubsystem {
         return isSlotOccupied(slot.index);
     }
 
-    /**
-     * Alias method for backward compatibility.
-     */
     public boolean isBallPresent(int slotIndex) {
         return isSlotOccupied(slotIndex);
     }
 
-    /**
-     * Classifies the color of the ball present in a specific slot (0=Top, 1=Left, 2=Right, 3=Bottom).
-     */
     public BallColor detectSlotColor(int slotIndex) {
         switch (slotIndex) {
             case 0: return detectSensorColor(SENSOR_TOP);
@@ -457,16 +407,10 @@ public class TransferSubsystem {
         return detectSlotColor(slot.index);
     }
 
-    /**
-     * Alias method for backward compatibility.
-     */
     public BallColor detectBallColor(int slotIndex) {
         return detectSlotColor(slotIndex);
     }
 
-    /**
-     * Returns an array of size 4 indicating slot occupancy (Top, Left, Right, Bottom).
-     */
     public boolean[] getSlotOccupancy() {
         boolean[] occupancy = new boolean[4];
         for (int i = 0; i < 4; i++) {
@@ -475,9 +419,6 @@ public class TransferSubsystem {
         return occupancy;
     }
 
-    /**
-     * Returns an array of size 4 containing the detected BallColor for each slot (Top, Left, Right, Bottom).
-     */
     public BallColor[] getSlotColors() {
         BallColor[] colors = new BallColor[4];
         for (int i = 0; i < 4; i++) {
@@ -486,9 +427,6 @@ public class TransferSubsystem {
         return colors;
     }
 
-    /**
-     * Returns the total count of occupied slots in the transfer (0 to 4).
-     */
     public int getBallCount() {
         int count = 0;
         for (int i = 0; i < 4; i++) {
@@ -499,48 +437,73 @@ public class TransferSubsystem {
         return count;
     }
 
-    /**
-     * Returns true if all 4 transfer slots are occupied.
-     */
     public boolean isFull() {
         return getBallCount() >= 4;
     }
 
-    /**
-     * Returns true if no transfer slots are occupied.
-     */
     public boolean isEmpty() {
         return getBallCount() == 0;
     }
 
+    // --- Intake Ramp Sensor Convenience Methods (Delegated to Stored Variables) ---
+
+    public boolean isRampBackBallPresent() {
+        return isSensorDetectingBall(SENSOR_RAMP_BACK);
+    }
+
+    public BallColor detectRampBackColor() {
+        return detectSensorColor(SENSOR_RAMP_BACK);
+    }
+
+    public double getRampBackDistanceMm() {
+        return getDistanceMm(SENSOR_RAMP_BACK);
+    }
+
+    public NormalizedRGBA getRampBackNormalizedColors() {
+        return getNormalizedColors(SENSOR_RAMP_BACK);
+    }
+
+    public boolean isRampFrontBallPresent() {
+        return isSensorDetectingBall(SENSOR_RAMP_FRONT);
+    }
+
+    public BallColor detectRampFrontColor() {
+        return detectSensorColor(SENSOR_RAMP_FRONT);
+    }
+
+    public double getRampFrontDistanceMm() {
+        return getDistanceMm(SENSOR_RAMP_FRONT);
+    }
+
+    public NormalizedRGBA getRampFrontNormalizedColors() {
+        return getNormalizedColors(SENSOR_RAMP_FRONT);
+    }
+
+    public int getRampBallCount() {
+        int count = 0;
+        if (isRampBackBallPresent()) count++;
+        if (isRampFrontBallPresent()) count++;
+        return count;
+    }
+
+    public boolean isRampOccupied() {
+        return getRampBallCount() > 0;
+    }
+
     // --- Ivy Command Generators ---
 
-    /**
-     * Command to rotate the transfer forward.
-     */
     public Command rotateForwardCommand() {
         return instant(this::rotateForward);
     }
 
-    /**
-     * Command to rotate the transfer in reverse.
-     */
     public Command rotateReverseCommand() {
         return instant(this::rotateReverse);
     }
 
-    /**
-     * Command to stop the transfer servo.
-     */
     public Command stopCommand() {
         return instant(this::stop);
     }
 
-    /**
-     * Command to advance the transfer by 1 slot (1/4 full rotation).
-     *
-     * @param forward true for forward 1 slot, false for reverse 1 slot.
-     */
     public Command advance1SlotCommand(boolean forward) {
         return sequential(
                 instant(() -> advance1Slot(forward)),
@@ -548,23 +511,14 @@ public class TransferSubsystem {
         );
     }
 
-    /**
-     * Command to advance the transfer forward by 1 slot (1/4 full rotation).
-     */
     public Command advance1SlotForwardCommand() {
         return advance1SlotCommand(true);
     }
 
-    /**
-     * Command to advance the transfer in reverse by 1 slot (1/4 full rotation).
-     */
     public Command advance1SlotReverseCommand() {
         return advance1SlotCommand(false);
     }
 
-    /**
-     * Sequence command: rotates transfer forward until all 4 ball slots are filled, then stops.
-     */
     public Command transferUntilFullCommand() {
         return sequential(
                 instant(this::rotateForward),

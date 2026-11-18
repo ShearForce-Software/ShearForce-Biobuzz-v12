@@ -5,20 +5,15 @@ import static com.pedropathing.ivy.commands.Commands.instant;
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * Subsystem for managing the Intake mechanism.
  * Features:
  * - Intake motor velocity control
  * - Depollinator servo position control (Up / Down)
- * - Two Color / Distance Sensors on the intake ramp (Ramp Back and Ramp Front)
+ * Note: Intake ramp color/distance sensors are managed centrally in TransferSubsystem.
  */
 public class IntakeSubsystem {
 
@@ -30,16 +25,8 @@ public class IntakeSubsystem {
         UNKNOWN
     }
 
-    // Sensor Index Constants
-    public static final int SENSOR_RAMP_BACK = 0;
-    public static final int SENSOR_RAMP_FRONT = 1;
-    public static final int SENSOR_COUNT = 2;
-
     private final DcMotorEx intakeMotor;
     private final Servo depollinatorServo;
-
-    private final NormalizedColorSensor[] colorSensors = new NormalizedColorSensor[SENSOR_COUNT];
-    private final DistanceSensor[] distanceSensors = new DistanceSensor[SENSOR_COUNT];
 
     // Default target velocity in encoder ticks per second
     public double targetVelocityTicks = IntakeConfig.DEFAULT_INTAKE_VELOCITY;
@@ -56,26 +43,6 @@ public class IntakeSubsystem {
 
         // Default depollinator servo to UP position
         depollinatorUp();
-
-        // Hardware map 2 color / distance sensors on the intake ramp
-        String[] sensorNames = {
-                IntakeConfig.COLOR_SENSOR_RAMP_BACK_NAME,
-                IntakeConfig.COLOR_SENSOR_RAMP_FRONT_NAME
-        };
-
-        for (int i = 0; i < SENSOR_COUNT; i++) {
-            try {
-                colorSensors[i] = hardwareMap.get(NormalizedColorSensor.class, sensorNames[i]);
-                if (colorSensors[i] instanceof DistanceSensor) {
-                    distanceSensors[i] = (DistanceSensor) colorSensors[i];
-                } else {
-                    distanceSensors[i] = null;
-                }
-            } catch (Exception e) {
-                colorSensors[i] = null;
-                distanceSensors[i] = null;
-            }
-        }
     }
 
     // --- Hardware Motor Control Methods ---
@@ -150,126 +117,6 @@ public class IntakeSubsystem {
      */
     public boolean isDepollinatorDown() {
         return Math.abs(getDepollinatorPosition() - IntakeConfig.DEPOLLINATOR_SERVO_DOWN) < 0.1;
-    }
-
-    // --- Color & Distance Sensor Methods ---
-
-    /**
-     * Returns normalized RGBA values for a specific physical sensor index (0 = Ramp Back, 1 = Ramp Front).
-     */
-    public NormalizedRGBA getNormalizedColors(int sensorIndex) {
-        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT || colorSensors[sensorIndex] == null) {
-            return new NormalizedRGBA();
-        }
-        return colorSensors[sensorIndex].getNormalizedColors();
-    }
-
-    /**
-     * Returns distance in mm for a specific physical sensor index (0 = Ramp Back, 1 = Ramp Front).
-     * Returns Double.MAX_VALUE if sensor is unavailable.
-     */
-    public double getDistanceMm(int sensorIndex) {
-        if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT || distanceSensors[sensorIndex] == null) {
-            return Double.MAX_VALUE;
-        }
-        try {
-            return distanceSensors[sensorIndex].getDistance(DistanceUnit.MM);
-        } catch (Exception e) {
-            return Double.MAX_VALUE;
-        }
-    }
-
-    /**
-     * Checks if a specific physical sensor index (0 = Ramp Back, 1 = Ramp Front) detects a ball.
-     */
-    public boolean isSensorDetectingBall(int sensorIndex) {
-        double dist = getDistanceMm(sensorIndex);
-        if (dist <= IntakeConfig.DISTANCE_THRESHOLD_MM) {
-            return true;
-        }
-        NormalizedRGBA colors = getNormalizedColors(sensorIndex);
-        float totalLight = colors.red + colors.green + colors.blue;
-        return totalLight > 0.15f;
-    }
-
-    /**
-     * Classifies the ball color detected by a specific physical sensor index (0 = Ramp Back, 1 = Ramp Front).
-     */
-    public BallColor detectSensorColor(int sensorIndex) {
-        if (!isSensorDetectingBall(sensorIndex)) {
-            return BallColor.NONE;
-        }
-
-        NormalizedRGBA colors = getNormalizedColors(sensorIndex);
-        float total = colors.red + colors.green + colors.blue;
-        if (total <= 0.01f) {
-            return BallColor.UNKNOWN;
-        }
-
-        float redRatio = colors.red / total;
-        float greenRatio = colors.green / total;
-        float blueRatio = colors.blue / total;
-
-        if (redRatio >= IntakeConfig.YELLOW_RED_MIN_RATIO && greenRatio >= IntakeConfig.YELLOW_GREEN_MIN_RATIO) {
-            return BallColor.YELLOW;
-        } else if (redRatio >= IntakeConfig.RED_MIN_RATIO) {
-            return BallColor.RED;
-        } else if (blueRatio >= IntakeConfig.BLUE_MIN_RATIO) {
-            return BallColor.BLUE;
-        }
-
-        return BallColor.UNKNOWN;
-    }
-
-    // --- Ramp Back & Ramp Front Specific Convenience Methods ---
-
-    public boolean isRampBackBallPresent() {
-        return isSensorDetectingBall(SENSOR_RAMP_BACK);
-    }
-
-    public BallColor detectRampBackColor() {
-        return detectSensorColor(SENSOR_RAMP_BACK);
-    }
-
-    public double getRampBackDistanceMm() {
-        return getDistanceMm(SENSOR_RAMP_BACK);
-    }
-
-    public NormalizedRGBA getRampBackNormalizedColors() {
-        return getNormalizedColors(SENSOR_RAMP_BACK);
-    }
-
-    public boolean isRampFrontBallPresent() {
-        return isSensorDetectingBall(SENSOR_RAMP_FRONT);
-    }
-
-    public BallColor detectRampFrontColor() {
-        return detectSensorColor(SENSOR_RAMP_FRONT);
-    }
-
-    public double getRampFrontDistanceMm() {
-        return getDistanceMm(SENSOR_RAMP_FRONT);
-    }
-
-    public NormalizedRGBA getRampFrontNormalizedColors() {
-        return getNormalizedColors(SENSOR_RAMP_FRONT);
-    }
-
-    /**
-     * Returns the total count of balls detected on the intake ramp (0, 1, or 2).
-     */
-    public int getBallCount() {
-        int count = 0;
-        if (isRampBackBallPresent()) count++;
-        if (isRampFrontBallPresent()) count++;
-        return count;
-    }
-
-    /**
-     * Returns true if any ball is detected on the intake ramp.
-     */
-    public boolean isRampOccupied() {
-        return getBallCount() > 0;
     }
 
     // --- Ivy Command Generators ---

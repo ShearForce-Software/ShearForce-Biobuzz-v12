@@ -5,18 +5,20 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem.BallColor;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem.BallColor;
 
 import java.util.Locale;
 
 /**
  * Interactive Combined Test and Tuning OpMode for the IntakeSubsystem and TransferSubsystem.
+ * Calls UpdateColorSensors() at a 10 Hz rate.
  *
  * Gamepad 1 Controls (INTAKE SUBSYSTEM):
  * - Cross (A) / Right Trigger: Turn on intake motor (spin forward)
@@ -55,6 +57,7 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
 
         IntakeSubsystem intakeSubsystem = new IntakeSubsystem(hardwareMap);
         TransferSubsystem transferSubsystem = new TransferSubsystem(hardwareMap);
+        ElapsedTime colorUpdateTimer = new ElapsedTime();
 
         telemetry.addLine("=== Intake & Transfer Combined Test ===");
         telemetry.addLine("G1 (Intake): Cross/RT = On | Square/LT = Reverse | Circle = Off");
@@ -64,8 +67,15 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
+        colorUpdateTimer.reset();
 
         while (opModeIsActive()) {
+
+            // Call UpdateColorSensors at 10 Hz rate (every 100 ms)
+            if (colorUpdateTimer.milliseconds() >= 100) {
+                colorUpdateTimer.reset();
+                transferSubsystem.UpdateColorSensors();
+            }
 
             // =========================================================================
             // GAMEPAD 1 CONTROLS: INTAKE SUBSYSTEM
@@ -178,20 +188,20 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
             telemetry.addData("Depollinator Position", String.format(Locale.US, "%.2f (Config UP: %.2f | DOWN: %.2f)",
                     intakeSubsystem.getDepollinatorPosition(), IntakeConfig.DEPOLLINATOR_SERVO_UP, IntakeConfig.DEPOLLINATOR_SERVO_DOWN));
 
-            telemetry.addData("Ramp Ball Count", intakeSubsystem.getBallCount() + " / 2");
+            telemetry.addData("Ramp Ball Count", transferSubsystem.getRampBallCount() + " / 2");
 
-            boolean backPresent = intakeSubsystem.isRampBackBallPresent();
-            BallColor backColor = intakeSubsystem.detectRampBackColor();
-            double backDist = intakeSubsystem.getRampBackDistanceMm();
-            NormalizedRGBA backRgba = intakeSubsystem.getRampBackNormalizedColors();
+            boolean backPresent = transferSubsystem.isRampBackBallPresent();
+            BallColor backColor = transferSubsystem.detectRampBackColor();
+            double backDist = transferSubsystem.getRampBackDistanceMm();
+            NormalizedRGBA backRgba = transferSubsystem.getRampBackNormalizedColors();
             String backDistStr = (backDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", backDist);
             telemetry.addData("  └ Ramp Back Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
                     backPresent ? "YES" : "NO ", backColor, backDistStr, backRgba.red, backRgba.green, backRgba.blue));
 
-            boolean frontPresent = intakeSubsystem.isRampFrontBallPresent();
-            BallColor frontColor = intakeSubsystem.detectRampFrontColor();
-            double frontDist = intakeSubsystem.getRampFrontDistanceMm();
-            NormalizedRGBA frontRgba = intakeSubsystem.getRampFrontNormalizedColors();
+            boolean frontPresent = transferSubsystem.isRampFrontBallPresent();
+            BallColor frontColor = transferSubsystem.detectRampFrontColor();
+            double frontDist = transferSubsystem.getRampFrontDistanceMm();
+            NormalizedRGBA frontRgba = transferSubsystem.getRampFrontNormalizedColors();
             String frontDistStr = (frontDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", frontDist);
             telemetry.addData("  └ Ramp Front Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
                     frontPresent ? "YES" : "NO ", frontColor, frontDistStr, frontRgba.red, frontRgba.green, frontRgba.blue));
@@ -211,7 +221,7 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
 
             // Slot 0: Top Slot
             boolean topPresent = transferSubsystem.isSlotOccupied(TransferSubsystem.SENSOR_TOP);
-            TransferSubsystem.BallColor topColor = transferSubsystem.detectSlotColor(TransferSubsystem.SENSOR_TOP);
+            BallColor topColor = transferSubsystem.detectSlotColor(TransferSubsystem.SENSOR_TOP);
             double topDist = transferSubsystem.getDistanceMm(TransferSubsystem.SENSOR_TOP);
             NormalizedRGBA topRgba = transferSubsystem.getNormalizedColors(TransferSubsystem.SENSOR_TOP);
             String topDistStr = (topDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", topDist);
@@ -220,7 +230,7 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
 
             // Slot 1: Left Slot
             boolean leftPresent = transferSubsystem.isSlotOccupied(TransferSubsystem.SENSOR_LEFT);
-            TransferSubsystem.BallColor leftColor = transferSubsystem.detectSlotColor(TransferSubsystem.SENSOR_LEFT);
+            BallColor leftColor = transferSubsystem.detectSlotColor(TransferSubsystem.SENSOR_LEFT);
             double leftDist = transferSubsystem.getDistanceMm(TransferSubsystem.SENSOR_LEFT);
             NormalizedRGBA leftRgba = transferSubsystem.getNormalizedColors(TransferSubsystem.SENSOR_LEFT);
             String leftDistStr = (leftDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", leftDist);
@@ -229,7 +239,7 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
 
             // Slot 2: Right Slot
             boolean rightPresent = transferSubsystem.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT);
-            TransferSubsystem.BallColor rightColor = transferSubsystem.detectSlotColor(TransferSubsystem.SENSOR_RIGHT);
+            BallColor rightColor = transferSubsystem.detectSlotColor(TransferSubsystem.SENSOR_RIGHT);
             double rightDist = transferSubsystem.getDistanceMm(TransferSubsystem.SENSOR_RIGHT);
             NormalizedRGBA rightRgba = transferSubsystem.getNormalizedColors(TransferSubsystem.SENSOR_RIGHT);
             String rightDistStr = (rightDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", rightDist);
@@ -238,11 +248,11 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
 
             // Slot 3: Bottom Slot
             boolean bottomPresent = transferSubsystem.isSlotOccupied(TransferSubsystem.Slot.BOTTOM);
-            TransferSubsystem.BallColor bottomColor = transferSubsystem.detectSlotColor(TransferSubsystem.Slot.BOTTOM);
+            BallColor bottomColor = transferSubsystem.detectSlotColor(TransferSubsystem.Slot.BOTTOM);
             telemetry.addData("  └ Bottom Slot", String.format(Locale.US, "Present: %s | Color: %s", bottomPresent ? "YES" : "NO ", bottomColor));
 
             boolean bbPresent = transferSubsystem.isSensorDetectingBall(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            TransferSubsystem.BallColor bbColor = transferSubsystem.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_BACK);
+            BallColor bbColor = transferSubsystem.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_BACK);
             double bbDist = transferSubsystem.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_BACK);
             NormalizedRGBA bbRgba = transferSubsystem.getNormalizedColors(TransferSubsystem.SENSOR_BOTTOM_BACK);
             String bbDistStr = (bbDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bbDist);
@@ -250,7 +260,7 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
                     bbPresent ? "YES" : "NO ", bbColor, bbDistStr, bbRgba.red, bbRgba.green, bbRgba.blue));
 
             boolean bfPresent = transferSubsystem.isSensorDetectingBall(TransferSubsystem.SENSOR_BOTTOM_FRONT);
-            TransferSubsystem.BallColor bfColor = transferSubsystem.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_FRONT);
+            BallColor bfColor = transferSubsystem.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             double bfDist = transferSubsystem.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             NormalizedRGBA bfRgba = transferSubsystem.getNormalizedColors(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             String bfDistStr = (bfDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bfDist);

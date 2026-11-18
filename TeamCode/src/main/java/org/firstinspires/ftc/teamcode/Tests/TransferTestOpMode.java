@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
@@ -16,6 +17,7 @@ import java.util.Locale;
  * Interactive Test and Tuning OpMode for the TransferSubsystem.
  * Displays real-time slot occupancy and sensor data for Top, Left, Right,
  * and Bottom (Bottom Back & Bottom Front) slots.
+ * Calls UpdateColorSensors() at a 10 Hz rate.
  *
  * Gamepad 1 Controls:
  * - Cross (A) / Right Trigger: Rotate transfer forward continuously
@@ -32,7 +34,6 @@ import java.util.Locale;
 public class TransferTestOpMode extends LinearOpMode {
 
     private double customSpeed = Math.abs(TransferConfig.FORWARD_POWER);
-    //boolean autoTransfer = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -40,6 +41,7 @@ public class TransferTestOpMode extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         TransferSubsystem transfer = new TransferSubsystem(hardwareMap);
+        ElapsedTime colorUpdateTimer = new ElapsedTime();
 
         telemetry.addLine("=== Transfer Subsystem Test ===");
         telemetry.addLine("Cross / RT: Rotate Forward | Square / LT: Reverse");
@@ -49,8 +51,15 @@ public class TransferTestOpMode extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
+        colorUpdateTimer.reset();
 
         while (opModeIsActive()) {
+
+            // Call UpdateColorSensors at 10 Hz rate (every 100 ms)
+            if (colorUpdateTimer.milliseconds() >= 100) {
+                colorUpdateTimer.reset();
+                transfer.UpdateColorSensors();
+            }
 
             // Speed adjustment via D-Pad Up / Down
             if (gamepad1.dpadUpWasPressed()) {
@@ -82,15 +91,6 @@ public class TransferTestOpMode extends LinearOpMode {
                 transfer.Load1Ball();
             }
 
-           /* if (gamepad1.optionsWasPressed() && gamepad1.circleWasPressed()) {
-                autoTransfer = true;
-            }
-
-            if (autoTransfer) {
-                if (transfer.isSlotOccupied(TransferSubsystem.Slot.BOTTOM)) {
-                    transfer.advance1SlotForward();
-                }
-            }*/
             // Reset Through Bore Encoder Position via Triangle
             if (gamepad1.triangleWasPressed()) {
                 transfer.resetEncoder();
@@ -146,7 +146,7 @@ public class TransferTestOpMode extends LinearOpMode {
             telemetry.addData("Right Slot", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
                     rightPresent ? "YES" : "NO ", rightColor, rightDistStr, rightRgba.red, rightRgba.green, rightRgba.blue));
 
-            // Slot 3: Bottom Slot (Combined status for Bottom Back and Bottom Front sensors)
+            // Slot 3: Bottom Slot
             boolean bottomPresent = transfer.isSlotOccupied(TransferSubsystem.Slot.BOTTOM);
             BallColor bottomColor = transfer.detectSlotColor(TransferSubsystem.Slot.BOTTOM);
             telemetry.addData("Bottom Slot (Overall)", String.format(Locale.US, "Present: %s | Color: %s",

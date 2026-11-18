@@ -5,27 +5,20 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem.BallColor;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem.BallColor;
 
 import java.util.Locale;
 
 /**
  * Interactive Test OpMode for the IntakeSubsystem.
  * Displays real-time status for the intake motor, depollinator servo,
- * and Ramp Back / Ramp Front color and distance sensors.
- *
- * Gamepad 1 Controls:
- * - Cross (A) / Right Trigger: Turn on intake motor (spin forward)
- * - Square (X) / Left Trigger: Reverse intake motor (spin backward to eject)
- * - Circle (B): Turn off intake motor
- * - Triangle (Y): Toggle Depollinator Servo between UP and DOWN position
- * - Left Stick Y (Up/Down): Tune Depollinator UP position (+/- 0.05)
- * - Right Stick Y (Up/Down): Tune Depollinator DOWN position (+/- 0.05)
- * - D-Pad Up / Down: Increase / Decrease target intake velocity (+/- 100 ticks/sec)
+ * and Ramp Back / Ramp Front color and distance sensors via TransferSubsystem.
  */
 @TeleOp(name = "Intake Subsystem Test", group = "Testing")
 @SuppressWarnings("unused")
@@ -43,6 +36,8 @@ public class IntakeTestOpMode extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         IntakeSubsystem intakeSubsystem = new IntakeSubsystem(hardwareMap);
+        TransferSubsystem transferSubsystem = new TransferSubsystem(hardwareMap);
+        ElapsedTime colorUpdateTimer = new ElapsedTime();
 
         telemetry.addLine("=== Intake Subsystem Test ===");
         telemetry.addLine("Cross / RT: Intake Forward | Square / LT: Reverse | Circle: Off");
@@ -52,8 +47,15 @@ public class IntakeTestOpMode extends LinearOpMode {
         telemetry.update();
 
         waitForStart();
+        colorUpdateTimer.reset();
 
         while (opModeIsActive()) {
+
+            // Call UpdateColorSensors at 10 Hz rate (every 100 ms)
+            if (colorUpdateTimer.milliseconds() >= 100) {
+                colorUpdateTimer.reset();
+                transferSubsystem.UpdateColorSensors();
+            }
 
             // Velocity adjustment via D-Pad Up / Down
             if (gamepad1.dpadUpWasPressed()) {
@@ -122,23 +124,23 @@ public class IntakeTestOpMode extends LinearOpMode {
 
             // Status Telemetry: Ramp Color & Distance Sensors
             telemetry.addLine("=== Intake Ramp Sensors ===");
-            telemetry.addData("Ramp Ball Count", intakeSubsystem.getBallCount() + " / 2");
-            telemetry.addData("Ramp Occupied", intakeSubsystem.isRampOccupied() ? "YES" : "NO");
+            telemetry.addData("Ramp Ball Count", transferSubsystem.getRampBallCount() + " / 2");
+            telemetry.addData("Ramp Occupied", transferSubsystem.isRampOccupied() ? "YES" : "NO");
 
             // Sensor 0: Ramp Back Sensor
-            boolean backPresent = intakeSubsystem.isRampBackBallPresent();
-            BallColor backColor = intakeSubsystem.detectRampBackColor();
-            double backDist = intakeSubsystem.getRampBackDistanceMm();
-            NormalizedRGBA backRgba = intakeSubsystem.getRampBackNormalizedColors();
+            boolean backPresent = transferSubsystem.isRampBackBallPresent();
+            BallColor backColor = transferSubsystem.detectRampBackColor();
+            double backDist = transferSubsystem.getRampBackDistanceMm();
+            NormalizedRGBA backRgba = transferSubsystem.getRampBackNormalizedColors();
             String backDistStr = (backDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", backDist);
             telemetry.addData("Ramp Back Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
                     backPresent ? "YES" : "NO ", backColor, backDistStr, backRgba.red, backRgba.green, backRgba.blue));
 
             // Sensor 1: Ramp Front Sensor
-            boolean frontPresent = intakeSubsystem.isRampFrontBallPresent();
-            BallColor frontColor = intakeSubsystem.detectRampFrontColor();
-            double frontDist = intakeSubsystem.getRampFrontDistanceMm();
-            NormalizedRGBA frontRgba = intakeSubsystem.getRampFrontNormalizedColors();
+            boolean frontPresent = transferSubsystem.isRampFrontBallPresent();
+            BallColor frontColor = transferSubsystem.detectRampFrontColor();
+            double frontDist = transferSubsystem.getRampFrontDistanceMm();
+            NormalizedRGBA frontRgba = transferSubsystem.getRampFrontNormalizedColors();
             String frontDistStr = (frontDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", frontDist);
             telemetry.addData("Ramp Front Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
                     frontPresent ? "YES" : "NO ", frontColor, frontDistStr, frontRgba.red, frontRgba.green, frontRgba.blue));
@@ -153,5 +155,6 @@ public class IntakeTestOpMode extends LinearOpMode {
         }
 
         intakeSubsystem.turnOff();
+        transferSubsystem.stop();
     }
 }
