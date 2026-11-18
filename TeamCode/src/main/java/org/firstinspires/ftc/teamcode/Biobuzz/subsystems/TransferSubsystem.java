@@ -212,6 +212,11 @@ public class TransferSubsystem {
 
     // --- Slot Advancement Methods (1/4 Full Rotation = 1 Slot) ---
 
+    /**
+     * Rotates the transfer 1/4 of a full rotation (1 slot) forward or reverse based on TransferConfig.TICKS_PER_REV.
+     *
+     * @param forward true to rotate forward 1 slot, false to rotate reverse 1 slot.
+     */
     public void advance1Slot(boolean forward) {
         this.advanceForward = forward;
         double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
@@ -225,27 +230,45 @@ public class TransferSubsystem {
         isAdvancingSlot = true;
     }
 
+    /**
+     * Rotates the transfer forward by 1 slot (1/4 full rotation).
+     */
     public void Shoot1Ball() {
         advance1Slot(true);
     }
 
+    /**
+     * Rotates the transfer forward by 5 slots (1 full rotation + 1/4 rotation for extra measure).
+     */
     public void ShootAllBalls() {
         this.advanceForward = true;
         double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
+
+        // rotate 5 slots (all balls should shoot out)
         targetEncoderTicks = getRawTicks() + TransferConfig.TICKS_PER_REV + quarterRotationTicks;
         rotateForward();
+
         isAdvancingSlot = true;
+
     }
 
+    /**
+     * Rotates the transfer in reverse by 1 slot (1/4 full rotation).
+     */
     public void Load1Ball() {
         advance1Slot(false);
     }
 
+    /**
+     * Rotates the transfer in reverse by 1/2 slot (1/8 full rotation)
+     * to keep bottom ball from falling out until ready to shoot
+     */
     public void StowBalls() {
         this.advanceForward = false;
         double eighthRotationTicks = TransferConfig.TICKS_PER_REV / 8.0;
         targetEncoderTicks = getRawTicks() - eighthRotationTicks;
         rotateReverse();
+
         isAdvancingSlot = true;
     }
 
@@ -253,8 +276,12 @@ public class TransferSubsystem {
         return isAdvancingSlot;
     }
 
+    /**
+     * Returns the transfer to the zero position (ready to take in first ball)
+     */
     public void ReturnToZeroPosition() {
         targetEncoderTicks = 0;
+
         if (targetEncoderTicks != getRawTicks()) {
             if (targetEncoderTicks > getRawTicks()) {
                 this.advanceForward = true;
@@ -267,14 +294,21 @@ public class TransferSubsystem {
         }
     }
 
+    /**
+     * Checks if the 1 slot (1/4 rotation) movement has completed and stops the servo when target is reached.
+     *
+     * @return true if movement is finished or inactive.
+     */
     public boolean isAdvance1SlotComplete() {
         if (!isAdvancingSlot) {
             return true;
         }
 
+        // if we were shooting
         if (advanceForward) {
             if (getRawTicks() >= targetEncoderTicks) {
                 stop();
+
                 if (TransferConfig.AUTO_TRANSFER) {
                     ReturnToZeroPosition();
                 } else {
@@ -290,6 +324,9 @@ public class TransferSubsystem {
         return false;
     }
 
+    /**
+     * Call inside your OpMode loop to monitor and complete active 1-slot advancement movements.
+     */
     public void update() {
         if (isAdvancingSlot) {
             isAdvance1SlotComplete();
@@ -344,6 +381,10 @@ public class TransferSubsystem {
         return cachedNormalizedColors[sensorIndex];
     }
 
+    /**
+     * Returns distance in mm for a specific physical sensor index 
+     * Returns Double.MAX_VALUE if sensor is unavailable.
+     */
     public double getDistanceMm(int sensorIndex) {
         if (sensorIndex < 0 || sensorIndex >= SENSOR_COUNT) {
             return Double.MAX_VALUE;

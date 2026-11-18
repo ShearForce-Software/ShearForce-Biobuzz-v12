@@ -6,12 +6,10 @@ This file tracks the upcoming software tasks.
 
 ## 🚀 Drive System, TeleOp, and Auto Routing 🚀
 - [✅] Update biobuzz.xml with actual locations things are plugged in
-  - Verify _ExampleRedAuto can be initialized without crashing (it has all subsystems defined in it)
 - [✅] Tune new BIOBUZZ robot for PedroPathing
 - [✅] Test PedroPathing example routes
-    - Verify basic path following works as expected
-- [ ] **Move Color sensor logic to separate thread to minimize latency**
-- [ ] **Reduce latency of telemetry messages by slowing them down**
+- [✅] **Move Color sensor logic to separate thread to minimize latency**
+- [✅] **Reduce latency of telemetry messages by slowing them down**
 - [ ] **Test BiobuzzTeleOp for Robot Centric manual drive controls for > 4 minutes**
 - [ ] Test BiobuzzTeleOp for Field Centric manual drive controls for > 4 minutes
 - [✅] Update names of existing Auto routes to show color, plan set (1,2, or 3), and start position
@@ -35,7 +33,7 @@ This file tracks the upcoming software tasks.
   - [ ] Add ability to detect wrong color Nectar on ramp and auto eject it
   - [ ] Update the de-pollinator up position to be tighter to the chassis
 - [ ] **Transfer System Testing**
-  - [ ] Add PIDF tuning for transfer system rotate CRServo
+  - [ ] **Add PIDF tuning for transfer system rotate CRServo**
   - [ ] Move auto transfer logic from BiobuzzTeleOp to TransferSubsystem so can be reused in autonomous routes
   - [ ] Update color sensor logic to not update while the transfer subsystem is running (stop false arm detects)
   - [✅] Test encoder to determine correct tick/revolution value
@@ -48,7 +46,7 @@ This file tracks the upcoming software tasks.
   - [ ] Test and verify wrong color Nectar never slips in
   - [ ] Test and verify never hold more than 4 game elements
 - [ ] **Intake + Transfer + Shooter Combo Testing**
-  - [ ] **Fix Shooter Nectar/Pollen Servo in BiobuzzTeleOp**
+  - [✅] **Fix Shooter Nectar/Pollen Servo in BiobuzzTeleOp**
   - Test shooter on actual field
   - Determine best velocities for several distances
   - See if can determine an optimum "curve" algorithm to use for shooting based on distance

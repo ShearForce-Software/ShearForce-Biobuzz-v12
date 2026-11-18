@@ -17,14 +17,6 @@ import com.qualcomm.robotcore.hardware.Servo;
  */
 public class IntakeSubsystem {
 
-    public enum BallColor {
-        NONE,
-        RED,
-        BLUE,
-        YELLOW,
-        UNKNOWN
-    }
-
     private final DcMotorEx intakeMotor;
     private final Servo depollinatorServo;
 
