@@ -45,6 +45,7 @@ This file tracks the upcoming software tasks.
     - else if front-ramp ball detected OR back-ramp ball detected AND 4 balls already in transfer
       - then eject intake, close both gates
    - [ ] Update the de-pollinator up position to be tighter to the chassis
+   - [ ] Add motor current monitoring and Jam / Stall protection to the IntakeSubsystem.update() method to automatically stop the intake and alert the driver if a stall/jam is detected.
 - [ ] **Transfer Subsystem**
   - [✅] Update color sensor logic to not update while the transfer subsystem is running (stop false arm detects)
   - [✅] Test encoder to determine correct tick/revolution value
@@ -69,6 +70,9 @@ This file tracks the upcoming software tasks.
   - [ ] Implement a PIDF tuner for the turret rotation motor
   - [ ] Implement an auto tracker capability to always have the turret pointed at the target
     - will need special logic to know when to switch to the other target (have to use the camera to know) 
+  - [ ] Implement flywheel jam and stall protections
+    - Add velocity disparity monitoring (Math.abs(leftVel - rightVel) > THRESHOLD) and motor current monitoring (motor.getCurrent(CurrentUnit.AMPS)) in ShooterSubsystem.update() to automatically stop flywheels and alert the driver if a stall/jam is detected.
+  - [ ] Add motor current monitoring and Jam / Stall protection for the turret motor and alert the driver if a stall/jam is detected.
 - [ ] **Intake + Transfer Combo Testing**
   - [✅] Add ability to auto advance transfer subsystem to next slot when intake is on and ball detected in bottom spot
   - [✅] Add ability to auto turn off intake when all slots are filled
@@ -81,6 +85,7 @@ This file tracks the upcoming software tasks.
 - [ ] **Verify camera is working on new BIOBUZZ robot**
   - Using the biobuzz.xml config file and the CameraTunerOpMode
   - May need to update biobuzz.xml config file for the actual camera ID**
+- [ ] Determine the correct offset for the camera based on actual install location
 - [ ] Add update logic to TeleOp to periodically update the Hive Up/Down info without introducing lag to the system
 - [ ] Create Test OpMode to calculate distance to target based on aprilTab size
   - Watch YouTube video explaining concept:  https://www.youtube.com/watch?v=Ap1lBywv00M

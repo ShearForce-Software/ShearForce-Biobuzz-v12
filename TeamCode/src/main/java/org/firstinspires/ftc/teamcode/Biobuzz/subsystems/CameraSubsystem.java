@@ -159,8 +159,9 @@ public class CameraSubsystem {
             return Double.NaN;
         }
 
-        // Convert FTC yaw angle (degrees) to radians
-        double ftcHeadingRad = Math.toRadians(cluster.ftcPose.yaw);
+        // Convert FTC yaw angle (degrees) to radians and include camera mounting yaw offset
+        double cameraYawOffsetRad = Math.toRadians(CameraConfig.CAMERA_YAW_OFFSET_DEG);
+        double ftcHeadingRad = Math.toRadians(cluster.ftcPose.yaw) + cameraYawOffsetRad;
 
         // Convert FTC coordinates to Pedro coordinates using CameraConfig.toPedroCoordinates
         double[] pedroCoords = CameraConfig.toPedroCoordinates(cluster.ftcPose.x, cluster.ftcPose.y, ftcHeadingRad);

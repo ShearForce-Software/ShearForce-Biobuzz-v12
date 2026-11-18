@@ -6,8 +6,10 @@ import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Biobuzz.pedro.Constants;
@@ -96,8 +98,13 @@ public class BiobuzzTeleOp extends OpMode {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        // Restore exact ending coordinate Pose from Autonomous
-        follower.setPose(MatchConfig.currentPose);
+        // Restore exact ending coordinate Pose from Autonomous (with sanity check fallback)
+        if (MatchConfig.isValidPose(MatchConfig.currentPose)) {
+            follower.setPose(MatchConfig.currentPose);
+        } else {
+            // default position if current pose is invalid, user can use reset function to fix the heading
+            follower.setPose(new Pose(99, 99, Math.toRadians(99)));
+        }
         intake.depollinatorUp();
         shooter.hoodMinPosition();
         visionHeadingCorrectionEnabled = false;
@@ -175,7 +182,21 @@ public class BiobuzzTeleOp extends OpMode {
         double strafe = gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
 
-        // Command the robot to drive with the joystick inputs
+        // Driver Assistance: Cardinal Heading Snap on Gamepad 1 DPAD buttons (must hold buttons down until gets to the desired heading)
+        if (gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_right) {
+            double targetHeading = 0;
+            if (gamepad1.dpad_up) targetHeading = Math.toRadians(90);        // 90° (Facing TV)
+            else if (gamepad1.dpad_down) targetHeading = Math.toRadians(270); // 2700° (Facing Audience)
+            else if (gamepad1.dpad_left) targetHeading = Math.toRadians(180); // 180° (Facing Red Drivers)
+            else if (gamepad1.dpad_right) targetHeading = Math.toRadians(0);  // 0° (Facing Blue Drivers)
+
+            double currentHeading = follower.pose().heading();
+            double headingError = AngleUnit.normalizeRadians(targetHeading - currentHeading);
+            double kP_headingSnap = 1.2;
+            turn = Range.clip(headingError * kP_headingSnap, -0.75, 0.75);
+        }
+
+        // Command the robot to drive with the joystick / snap inputs
         DriveRobot(forward, strafe, turn);
 
         // Rate-limited vision heading drift correction when stationary (checked every 500ms)
@@ -363,8 +384,8 @@ public class BiobuzzTeleOp extends OpMode {
         // --- Match & Target Info ---
         Pose robotPose = follower.pose();
 		
-		// Calculate distance to goal using pedro pathing data
-        Pose goalPose = MatchConfig.getAudienceGoalPose();	
+        // Calculate distance to active goal using pedro pathing data and MatchConfig
+        Pose goalPose = MatchConfig.getActiveGoalPose();	
         double deltaX = goalPose.x() - robotPose.x();
         double deltaY = goalPose.y() - robotPose.y();
         double odomDistance = Math.hypot(deltaX, deltaY);
@@ -375,7 +396,7 @@ public class BiobuzzTeleOp extends OpMode {
         //double cameraDistance = (closestCluster != null && closestCluster.ftcPose != null) ? closestCluster.ftcPose.range : Double.NaN;
         //double cameraBearing = (closestCluster != null && closestCluster.ftcPose != null) ? closestCluster.ftcPose.bearing : Double.NaN;
 		
-        telemetry.addData("Drive Mode", isFieldCentric ? "FIELD CENTRIC (G1:BACK to switch)" : "ROBOT CENTRIC (DEFAULT) (G1:TBD to switch)");
+        telemetry.addData("Drive Mode", isFieldCentric ? "FIELD CENTRIC" : "ROBOT CENTRIC");
         telemetry.addLine("=== Match & Target Info ===");
         telemetry.addData("Alliance Color", MatchConfig.allianceColor);
         telemetry.addData("Hive State", MatchConfig.isAudienceGoalUp() ? "AUDIENCE GOAL UP" : "AUDIENCE GOAL DOWN");
@@ -436,7 +457,10 @@ public class BiobuzzTeleOp extends OpMode {
 
         // --- Controls Summary ---
         telemetry.addLine("=== Controls Summary ===");
-        telemetry.addLine("G1: Joysticks = Field   | Triangle = Reset Heading | Triangle + Options = Toggle Field/Robot Mode");
+        telemetry.addLine("G1: Joysticks = Drive   | D-Pad = Snap Heading   | Triangle = Reset Heading");
+        telemetry.addLine("G1: Triangle + Options = Toggle Field Centric / Robot Centric");
+        telemetry.addLine("G1: Circle = Toggle Auto Vision Heading Correction Mode");
+
         telemetry.addLine("G2: Left Bumper = Shoot All | Left Trigger = Shoot 1 | Right Trigger = Stop Transfer");
         telemetry.addLine("G2: DPAD Left/Right = Hood | Triangle = Flywheels | Square = EJECT");
         telemetry.addLine("G2: D-Pad Up/Down = Depollinator UP/DOWN         | Right Bumper = 1 Slot Load");

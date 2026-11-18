@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -72,6 +73,12 @@ public class TransferSubsystem {
     private final boolean[] cachedBallPresent = new boolean[SENSOR_COUNT];
     private final BallColor[] cachedBallColor = new BallColor[SENSOR_COUNT];
 
+    // Circuit Breaker for I2C disconnection resilience (prevents I2C bus starvation)
+    private final int[] sensorFailureCounts = new int[SENSOR_COUNT];
+    private final ElapsedTime[] sensorCooldownTimers = new ElapsedTime[SENSOR_COUNT];
+    private static final int MAX_CONSECUTIVE_FAILURES = 5;
+    private static final double SENSOR_COOLDOWN_SECONDS = 5.0;
+
     private double encoderOffsetTicks = 0.0;
 
     // Advance 1 slot tracking
@@ -89,12 +96,14 @@ public class TransferSubsystem {
         encoderMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         encoderMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Initialize cached normalized colors array
+        // Initialize cached normalized colors array and circuit breaker timers
         for (int i = 0; i < SENSOR_COUNT; ++i) {
             cachedNormalizedColors[i] = new NormalizedRGBA();
             cachedDistanceMm[i] = Double.MAX_VALUE;
             cachedBallColor[i] = BallColor.NONE;
             cachedBallPresent[i] = false;
+            sensorCooldownTimers[i] = new ElapsedTime();
+            sensorFailureCounts[i] = 0;
         }
 
         // Hardware map all 7 color / distance sensors (5 transfer + 2 intake ramp)
@@ -132,12 +141,29 @@ public class TransferSubsystem {
      */
     public void UpdateColorSensors() {
         for (int i = 0; i < SENSOR_COUNT; ++i) {
+            // Circuit Breaker: Skip query if sensor has repeatedly failed and cooldown timer is active
+            if (sensorFailureCounts[i] >= MAX_CONSECUTIVE_FAILURES) {
+                if (sensorCooldownTimers[i].seconds() < SENSOR_COOLDOWN_SECONDS) {
+                    cachedDistanceMm[i] = Double.MAX_VALUE;
+                    cachedNormalizedColors[i] = new NormalizedRGBA();
+                    cachedBallPresent[i] = false;
+                    cachedBallColor[i] = BallColor.NONE;
+                    continue;
+                } else {
+                    // Cooldown expired; attempt to retry reading sensor
+                    sensorFailureCounts[i] = 0;
+                }
+            }
+
+            boolean readFailed = false;
+
             // Read distance
             if (distanceSensors[i] != null) {
                 try {
                     cachedDistanceMm[i] = distanceSensors[i].getDistance(DistanceUnit.MM);
                 } catch (Exception e) {
                     cachedDistanceMm[i] = Double.MAX_VALUE;
+                    readFailed = true;
                 }
             } else {
                 cachedDistanceMm[i] = Double.MAX_VALUE;
@@ -149,9 +175,19 @@ public class TransferSubsystem {
                     cachedNormalizedColors[i] = colorSensors[i].getNormalizedColors();
                 } catch (Exception e) {
                     cachedNormalizedColors[i] = new NormalizedRGBA();
+                    readFailed = true;
                 }
             } else {
                 cachedNormalizedColors[i] = new NormalizedRGBA();
+            }
+
+            if (readFailed) {
+                sensorFailureCounts[i]++;
+                if (sensorFailureCounts[i] >= MAX_CONSECUTIVE_FAILURES) {
+                    sensorCooldownTimers[i].reset();
+                }
+            } else {
+                sensorFailureCounts[i] = 0;
             }
 
             // Compute ball presence and color from cached readings
