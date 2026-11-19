@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
 
-@Autonomous(name = "RED plan3 Audience Side", group = "RedAudienceSide")
+@Autonomous(name = "RED plan3 Audience Side", group = "Red_Audience_Side", preselectTeleOp = "BIOBUZZ TeleOp")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class red_plan3_Audience_side extends LinearOpMode {
     private Follower follower;

@@ -140,7 +140,23 @@ public class TransferSubsystem {
      * This is the ONLY method permitted to make direct hardware access calls to the physical color sensors.
      */
     public void UpdateColorSensors() {
+        boolean transferRotating = isRotating() || isAdvancingSlot;
+
         for (int i = 0; i < SENSOR_COUNT; ++i) {
+            // Check if this is a transfer ring sensor (slots 0 to 4: Top, Left, Right, Bot Back, Bot Front)
+            boolean isTransferSensor = (i <= SENSOR_BOTTOM_FRONT);
+
+            // Skip transfer ring sensors if transfer is rotating to avoid false detections from arms passing sensors.
+            // Ramp sensors (indices 5 & 6) are ALWAYS checked regardless of transfer rotation.
+            if (isTransferSensor && transferRotating) {
+                //cachedDistanceMm[i] = Double.MAX_VALUE;
+                //cachedNormalizedColors[i] = new NormalizedRGBA();
+                //cachedBallPresent[i] = false;
+                //cachedBallColor[i] = BallColor.NONE;
+                // Skip doing anything with these sensors, just leave the cached data alone
+                continue;
+            }
+
             // Circuit Breaker: Skip query if sensor has repeatedly failed and cooldown timer is active
             if (sensorFailureCounts[i] >= MAX_CONSECUTIVE_FAILURES) {
                 if (sensorCooldownTimers[i].seconds() < SENSOR_COOLDOWN_SECONDS) {
@@ -157,7 +173,7 @@ public class TransferSubsystem {
 
             boolean readFailed = false;
 
-            // Read distance
+            // 1. Read distance first
             if (distanceSensors[i] != null) {
                 try {
                     cachedDistanceMm[i] = distanceSensors[i].getDistance(DistanceUnit.MM);
@@ -169,16 +185,47 @@ public class TransferSubsystem {
                 cachedDistanceMm[i] = Double.MAX_VALUE;
             }
 
-            // Read normalized colors
-            if (colorSensors[i] != null) {
-                try {
-                    cachedNormalizedColors[i] = colorSensors[i].getNormalizedColors();
-                } catch (Exception e) {
+            // Check if ball is present based on distance reading
+            boolean present = (cachedDistanceMm[i] <= TransferConfig.DISTANCE_THRESHOLD_MM);
+            cachedBallPresent[i] = present;
+
+            if (present) {
+                // 2. Only read normalized colors if a ball is detected by the distance sensor to save I2C time
+                if (colorSensors[i] != null) {
+                    try {
+                        cachedNormalizedColors[i] = colorSensors[i].getNormalizedColors();
+                    } catch (Exception e) {
+                        cachedNormalizedColors[i] = new NormalizedRGBA();
+                        readFailed = true;
+                    }
+                } else {
                     cachedNormalizedColors[i] = new NormalizedRGBA();
-                    readFailed = true;
+                }
+
+                NormalizedRGBA rgba = cachedNormalizedColors[i];
+                float totalLight = rgba.red + rgba.green + rgba.blue;
+
+                if (totalLight <= 0.01f) {
+                    cachedBallColor[i] = BallColor.NONE;
+                } else {
+                    float redRatio = rgba.red / totalLight;
+                    float greenRatio = rgba.green / totalLight;
+                    float blueRatio = rgba.blue / totalLight;
+
+                    if (redRatio >= TransferConfig.YELLOW_RED_MIN_RATIO && greenRatio >= TransferConfig.YELLOW_GREEN_MIN_RATIO) {
+                        cachedBallColor[i] = BallColor.YELLOW;
+                    } else if (redRatio >= TransferConfig.RED_MIN_RATIO) {
+                        cachedBallColor[i] = BallColor.RED;
+                    } else if (blueRatio >= TransferConfig.BLUE_MIN_RATIO) {
+                        cachedBallColor[i] = BallColor.BLUE;
+                    } else {
+                        cachedBallColor[i] = BallColor.UNKNOWN;
+                    }
                 }
             } else {
+                // Ball is not present: skip reading color sensor and set color to NONE
                 cachedNormalizedColors[i] = new NormalizedRGBA();
+                cachedBallColor[i] = BallColor.NONE;
             }
 
             if (readFailed) {
@@ -188,33 +235,6 @@ public class TransferSubsystem {
                 }
             } else {
                 sensorFailureCounts[i] = 0;
-            }
-
-            // Compute ball presence and color from cached readings
-            double dist = cachedDistanceMm[i];
-            NormalizedRGBA rgba = cachedNormalizedColors[i];
-            float totalLight = rgba.red + rgba.green + rgba.blue;
-            boolean present = (dist <= TransferConfig.DISTANCE_THRESHOLD_MM) || (totalLight > 0.15f);
-            cachedBallPresent[i] = present;
-
-            if (!present) {
-                cachedBallColor[i] = BallColor.NONE;
-            } else if (totalLight <= 0.01f) {
-                cachedBallColor[i] = BallColor.UNKNOWN;
-            } else {
-                float redRatio = rgba.red / totalLight;
-                float greenRatio = rgba.green / totalLight;
-                float blueRatio = rgba.blue / totalLight;
-
-                if (redRatio >= TransferConfig.YELLOW_RED_MIN_RATIO && greenRatio >= TransferConfig.YELLOW_GREEN_MIN_RATIO) {
-                    cachedBallColor[i] = BallColor.YELLOW;
-                } else if (redRatio >= TransferConfig.RED_MIN_RATIO) {
-                    cachedBallColor[i] = BallColor.RED;
-                } else if (blueRatio >= TransferConfig.BLUE_MIN_RATIO) {
-                    cachedBallColor[i] = BallColor.BLUE;
-                } else {
-                    cachedBallColor[i] = BallColor.UNKNOWN;
-                }
             }
         }
     }

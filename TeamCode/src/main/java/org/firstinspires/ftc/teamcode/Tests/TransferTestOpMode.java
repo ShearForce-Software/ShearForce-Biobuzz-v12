@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Utility;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -29,7 +30,7 @@ import java.util.Locale;
  * - D-Pad Up / Down: Increase / Decrease custom servo speed (+/- 0.1)
  * - D-Pad Left / Right: Decrease / Increase TransferConfig.TICKS_PER_REV (+/- 100)
  */
-@TeleOp(name = "Transfer Subsystem Test", group = "Testing")
+@Utility(name = "Transfer Subsystem Test", description = "Testing Transfer Subsystem")
 @SuppressWarnings("unused")
 public class TransferTestOpMode extends LinearOpMode {
 

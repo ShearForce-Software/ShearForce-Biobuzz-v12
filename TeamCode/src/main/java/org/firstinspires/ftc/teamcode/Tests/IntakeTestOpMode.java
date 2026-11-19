@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Utility;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -20,7 +21,7 @@ import java.util.Locale;
  * Displays real-time status for the intake motor, depollinator servo,
  * and Ramp Back / Ramp Front color and distance sensors via TransferSubsystem.
  */
-@TeleOp(name = "Intake Subsystem Test", group = "Testing")
+@Utility(name = "Intake Subsystem Test", description = "Testing Intake Subsystem")
 @SuppressWarnings("unused")
 public class IntakeTestOpMode extends LinearOpMode {
 

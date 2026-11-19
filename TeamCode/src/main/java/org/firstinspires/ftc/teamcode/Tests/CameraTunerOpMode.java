@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Utility;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -30,7 +31,7 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.CameraSubsystem;
  * - Button Square (X): Cycle Cluster Filter ("ALL", "RED SCORING", "RED AUDIENCE", "BLUE AUDIENCE", "BLUE SCORING")
  * - Button Triangle (Y): Reset Camera Settings to Defaults
  */
-@TeleOp(name = "Camera AprilTag Tuner", group = "Testing")
+@Utility(name = "Camera AprilTag Tuner", description = "Testing Camera functionality")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class CameraTunerOpMode extends LinearOpMode {
 

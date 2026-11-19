@@ -10,14 +10,16 @@ This file tracks the upcoming software tasks.
 - [✅] Test PedroPathing example routes
 - [✅] **Move Color sensor logic to separate thread to minimize latency**
 - [✅] **Reduce latency of telemetry messages by slowing them down**
+- [✅] Update names of existing Auto routes to show color, plan set (1,2, or 3), and start position
 - [ ] **Test BiobuzzTeleOp for Robot Centric manual drive controls for > 4 minutes**
 - [ ] Test BiobuzzTeleOp for Field Centric manual drive controls for > 4 minutes
-- [✅] Update names of existing Auto routes to show color, plan set (1,2, or 3), and start position
 - [ ] Save all autonomous routes in turtle format
 - [ ] **Create and Verify MVP parking route for all 4 positions**
 - [ ] Test and verify teleOp knows the correct alliance after autonomous
 - [ ] Add manual ability to change alliance from gamepad1
+- [ ] Add update logic to update the active Hive target info using only robot position and alliance color
 - [ ] Test and verify teleOp knows correct position and heading after autonomous
+- [ ] Add button to GamePad1 to auto turn the robot (w/ 90 deg offset for shooter) to point at the active hive
 - [ ] Create MVP+ routes to shoot 4 balls before parking
 - [ ] Create MVP++ routes to shoot 4 balls and intake from garden or flower then shoot again and park
 - [ ] Create Full Plan 1 RED - Audience route
@@ -34,8 +36,9 @@ This file tracks the upcoming software tasks.
 - [ ] **Intake Subsystem (and De-Pollinator)**
   - [✅] Test depollinator control, determine optimum up/down values for servo
   - [✅] Verify ramp sensors working to detect presence of a ball (nectar or pollen)
-  - [ ] Verify ramp sensors working to detect difference between Nectar versus Pollen
-  - [ ] Add support and logic for **NEW** intake gate servos (logic should be in a new intakeSubsystem.Update() method)
+  - [ ] **Verify ramp sensors working to detect difference between Nectar versus Pollen**
+  - [ ] **Add support and logic for **NEW** intake gate servos (logic should be in a new intakeSubsystem.Update() method)**
+    - Servos are already defined in the config file as: "gateBackServo" and "gateFrontServo"
     - if front-ramp ball detected and < 4 balls in transfer
       - if correct color, then open front gate, close back gate
       - else if wrong color then eject intake and close both gates
@@ -86,7 +89,7 @@ This file tracks the upcoming software tasks.
   - Using the biobuzz.xml config file and the CameraTunerOpMode
   - May need to update biobuzz.xml config file for the actual camera ID**
 - [ ] Determine the correct offset for the camera based on actual install location
-- [ ] Add update logic to TeleOp to periodically update the Hive Up/Down info without introducing lag to the system
+- [ ] Add update logic to TeleOp to periodically update the Hive Up/Down info using camera without introducing lag to the system
 - [ ] Create Test OpMode to calculate distance to target based on aprilTab size
   - Watch YouTube video explaining concept:  https://www.youtube.com/watch?v=Ap1lBywv00M
   - If works, then incorporate calculation into CameraSubsystem

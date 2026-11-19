@@ -114,8 +114,7 @@ public class BiobuzzTeleOp extends OpMode {
         colorSensorThread = new Thread(() -> {
             while (colorSensorThreadRunning && !Thread.currentThread().isInterrupted()) {
                 try {
-                    // don't bother updating the color sensors while the transfer is moving
-                    if ((transfer != null) && !transfer.IsBusy() && !transfer.isRotating()) {
+                    if (transfer != null) {
                         transfer.UpdateColorSensors();
                     }
                     Thread.sleep(60);

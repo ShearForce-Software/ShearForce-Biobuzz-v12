@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
 
-@Autonomous(name = "TV side Everything", group = "summerPedro")
+@Autonomous(name = "TV side Everything", group = "Testing")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class TV_Everything extends LinearOpMode {
     private Follower follower;
