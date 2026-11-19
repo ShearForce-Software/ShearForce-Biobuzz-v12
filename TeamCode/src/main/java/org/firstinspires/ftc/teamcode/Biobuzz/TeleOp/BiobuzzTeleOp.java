@@ -3,11 +3,13 @@ package org.firstinspires.ftc.teamcode.Biobuzz.TeleOp;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -44,6 +46,8 @@ public class BiobuzzTeleOp extends OpMode {
     private TransferSubsystem transfer;
     private ShooterSubsystem shooter;
     private CameraSubsystem camera;
+
+    IMU imu;
 
     // Driver States
     private boolean isFieldCentric = false; // Default to Robot Centric mode
@@ -88,6 +92,11 @@ public class BiobuzzTeleOp extends OpMode {
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);
+        imu.resetYaw();
 
         // Disable camera streaming during match play to minimize CPU and network load
         camera.stopDashboardStream();
@@ -173,6 +182,7 @@ public class BiobuzzTeleOp extends OpMode {
                 // G1: Triangle = Manually reset heading to 0° via Gamepad 1 (for heading drift correction)
                 Pose currentPose = follower.pose();
                 follower.setPose(new Pose(currentPose.x(), currentPose.y(), 0));
+                imu.resetYaw();
             }
         }
 
@@ -347,12 +357,20 @@ public class BiobuzzTeleOp extends OpMode {
 
         // Field Centric transformation using Pinpoint / PedroPathing heading if enabled
         if (isFieldCentric) {
-            double robotHeading = follower.pose().heading();
+            // Driver station orientation offset: 0 for Red, 180° (PI) for Blue
+            double allianceHeadingOffset = MatchConfig.isBlueAlliance() ? Math.PI : 0.0;
+
+            // Effective heading relative to the driver standing behind driver station glass
+            double robotHeading = follower.pose().heading() - allianceHeadingOffset;
+
             final double cos = Math.cos(-robotHeading);
             final double sin = Math.sin(-robotHeading);
             targetForward = forward * cos - strafe * sin;
             targetStrafe = forward * sin + strafe * cos;
         }
+
+        // Apply 10% boost to strafe commands to compensate for mecanum wheel friction
+        targetStrafe *= 1.1;
 
         double frontLeftPower  = targetForward + targetStrafe + turn;
         double frontRightPower = targetForward - targetStrafe - turn;
@@ -379,6 +397,7 @@ public class BiobuzzTeleOp extends OpMode {
         backLeftDrive.setPower(backLeftPower);
         backRightDrive.setPower(backRightPower);
     }
+
     private void PrintTelemetry() {
         // --- Match & Target Info ---
         Pose robotPose = follower.pose();
