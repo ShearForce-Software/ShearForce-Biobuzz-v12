@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -25,6 +26,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * - REV Through Bore Encoder (read via DcMotorEx port) to track rotation, position, and velocity
  * - Centralized UpdateColorSensors() procedure querying all 7 physical color sensors (5 transfer + 2 intake ramp)
  *   and caching values in local member variables to eliminate redundant hardware I2C calls.
+ * - Software PIDF velocity control (Forward Shooting Mode), predictive deceleration / indexing (Reverse Intake Mode),
+ *   and closed-loop position PIDF targeting to run exact tick/slot increments.
  */
 public class TransferSubsystem {
 
@@ -49,6 +52,14 @@ public class TransferSubsystem {
             this.index = index;
             this.name = name;
         }
+    }
+
+    public enum TransferControlState {
+        IDLE,
+        MANUAL,
+        VELOCITY_CONTROL,  // High-speed forward shooting PIDF
+        PREDICTIVE_INTAKE,  // Predictive reverse indexing for empty slot
+        POSITION_PIDF      // Closed-loop PIDF positioning to exact target ticks/slots
     }
 
     // Sensor Index Constants (0 to 4: Transfer, 5 to 6: Intake Ramp)
@@ -88,6 +99,16 @@ public class TransferSubsystem {
     private boolean isAdvancingSlot = false;
     private boolean advanceForward = true;
     private double targetEncoderTicks = 0.0;
+
+    // Software PIDF Controller State
+    private TransferControlState controlState = TransferControlState.IDLE;
+    private double targetVelocityTicksPerSec = 0.0;
+    private double targetPositionTicks = 0.0;
+    private double velIntegralSum = 0.0;
+    private double lastVelError = 0.0;
+    private double posIntegralSum = 0.0;
+    private double lastPosError = 0.0;
+    private final ElapsedTime pidTimer = new ElapsedTime();
 
     public TransferSubsystem(HardwareMap hardwareMap) {
         // Continuous Rotation Servo
@@ -146,7 +167,7 @@ public class TransferSubsystem {
      * This is the ONLY method permitted to make direct hardware access calls to the physical color sensors.
      */
     public void UpdateColorSensors() {
-        boolean transferRotating = isRotating() || isAdvancingSlot;
+        boolean transferRotating = isRotating() || isAdvancingSlot || controlState != TransferControlState.IDLE;
 
         for (int i = 0; i < SENSOR_COUNT; ++i) {
             // Check if this is a transfer ring sensor (slots 0 to 4: Top, Left, Right, Bot Back, Bot Front)
@@ -248,19 +269,27 @@ public class TransferSubsystem {
     // --- Servo Control Methods ---
 
     public void setPower(double power) {
+        if (Math.abs(power) > 0.01 && controlState != TransferControlState.VELOCITY_CONTROL
+                && controlState != TransferControlState.PREDICTIVE_INTAKE
+                && controlState != TransferControlState.POSITION_PIDF) {
+            controlState = TransferControlState.MANUAL;
+        }
         transferServo.setPower(power);
     }
 
     public void rotateForward() {
+        controlState = TransferControlState.MANUAL;
         setPower(TransferConfig.FORWARD_POWER);
     }
 
     public void rotateReverse() {
+        controlState = TransferControlState.MANUAL;
         setPower(TransferConfig.REVERSE_POWER);
     }
 
     public void stop() {
         isAdvancingSlot = false;
+        controlState = TransferControlState.IDLE;
         setPower(TransferConfig.STOP_POWER);
     }
 
@@ -272,13 +301,97 @@ public class TransferSubsystem {
         return transferServo.getPower();
     }
 
-    // --- Slot Advancement Methods (1/4 Full Rotation = 1 Slot) ---
+    public TransferControlState getControlState() {
+        return controlState;
+    }
+
+    // --- PIDF Velocity, Position & Predictive Control Methods ---
 
     /**
-     * Rotates the transfer 1/4 of a full rotation (1 slot) forward or reverse based on TransferConfig.TICKS_PER_REV.
-     *
-     * @param forward true to rotate forward 1 slot, false to rotate reverse 1 slot.
+     * Starts high-speed forward closed-loop velocity PIDF control for shooting all balls.
      */
+    public void startShootingVelocityControl() {
+        controlState = TransferControlState.VELOCITY_CONTROL;
+        targetVelocityTicksPerSec = TransferConfig.SHOOT_VELOCITY_TICKS_PER_SEC;
+        velIntegralSum = 0.0;
+        lastVelError = 0.0;
+        pidTimer.reset();
+    }
+
+    /**
+     * Rotates the transfer by a specified relative number of slots (1 slot = 2048 ticks) using closed-loop PIDF position control.
+     * Positive slots rotate forward, negative slots rotate in reverse.
+     *
+     * @param numberOfSlots Number of slots to rotate (e.g. 1.0, 0.5, -1.0).
+     */
+    public void rotateSlotsPIDF(double numberOfSlots) {
+        double deltaTicks = numberOfSlots * TransferConfig.TICKS_PER_SLOT;
+        setTargetTicksPIDF(getRawTicks() + deltaTicks);
+    }
+
+    /**
+     * Sets an absolute target position in ticks for closed-loop PIDF position control.
+     *
+     * @param targetTicks Target position in ticks.
+     */
+    public void setTargetTicksPIDF(double targetTicks) {
+        this.targetPositionTicks = targetTicks;
+        this.controlState = TransferControlState.POSITION_PIDF;
+        this.posIntegralSum = 0.0;
+        this.lastPosError = 0.0;
+        this.pidTimer.reset();
+    }
+
+    /**
+     * Returns the active target position in ticks for position PIDF control.
+     */
+    public double getTargetPositionTicks() {
+        return targetPositionTicks;
+    }
+
+    /**
+     * Returns the current position error in ticks (Target - Actual).
+     */
+    public double getPositionError() {
+        return targetPositionTicks - getRawTicks();
+    }
+
+    /**
+     * Finds the nearest empty slot using color/distance sensors and uses predictive deceleration to reverse and index 1 ball.
+     */
+    public void intakeOneBallPredictive() {
+        int emptySlotIndex = findNearestEmptySlot();
+        if (emptySlotIndex == -1) {
+            stop(); // All slots are full
+            return;
+        }
+
+        double currentTicks = getRawTicks();
+        double currentSlot = currentTicks / TransferConfig.TICKS_PER_SLOT;
+        double targetSlot = Math.floor(currentSlot) - (emptySlotIndex % 4);
+
+        targetPositionTicks = targetSlot * TransferConfig.TICKS_PER_SLOT;
+        controlState = TransferControlState.PREDICTIVE_INTAKE;
+        posIntegralSum = 0.0;
+        lastPosError = 0.0;
+        pidTimer.reset();
+    }
+
+    /**
+     * Finds the first empty slot index (0 to 3) based on the stationary color/distance sensors.
+     * Returns -1 if all 4 slots are occupied.
+     */
+    public int findNearestEmptySlot() {
+        for (int i = 0; i < 4; i++) {
+            if (!isSlotOccupied(i)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // --- Slot Advancement Methods (1/4 Full Rotation = 1 Slot) ---
+
     public void advance1Slot(boolean forward) {
         this.advanceForward = forward;
         double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
@@ -309,9 +422,7 @@ public class TransferSubsystem {
         // rotate 5 slots (all balls should shoot out)
         targetEncoderTicks = getRawTicks() + TransferConfig.TICKS_PER_REV + quarterRotationTicks;
         rotateForward();
-
         isAdvancingSlot = true;
-
     }
 
     /**
@@ -330,12 +441,11 @@ public class TransferSubsystem {
         double eighthRotationTicks = TransferConfig.TICKS_PER_REV / 8.0;
         targetEncoderTicks = getRawTicks() - eighthRotationTicks;
         rotateReverse();
-
         isAdvancingSlot = true;
     }
 
     public boolean IsBusy() {
-        return isAdvancingSlot;
+        return isAdvancingSlot || controlState != TransferControlState.IDLE;
     }
 
     /**
@@ -356,17 +466,11 @@ public class TransferSubsystem {
         }
     }
 
-    /**
-     * Checks if the 1 slot (1/4 rotation) movement has completed and stops the servo when target is reached.
-     *
-     * @return true if movement is finished or inactive.
-     */
     public boolean isAdvance1SlotComplete() {
         if (!isAdvancingSlot) {
             return true;
         }
 
-        // if we were shooting
         if (advanceForward) {
             if (getRawTicks() >= targetEncoderTicks) {
                 stop();
@@ -387,11 +491,89 @@ public class TransferSubsystem {
     }
 
     /**
-     * Call inside your OpMode loop to monitor and complete active 1-slot advancement movements.
+     * Call inside your OpMode loop to monitor sensors, PIDF calculations, and slot advancement.
      */
     public void update() {
-        if (isAdvancingSlot) {
-            isAdvance1SlotComplete();
+        UpdateColorSensors();
+
+        double dt = pidTimer.seconds();
+        pidTimer.reset();
+        if (dt <= 0 || dt > 0.1) dt = 0.005;
+
+        double currentTicks = getRawTicks();
+        double currentVelocity = getVelocityTicksPerSec();
+
+        switch (controlState) {
+            case VELOCITY_CONTROL: {
+                double velError = targetVelocityTicksPerSec - currentVelocity;
+                velIntegralSum += velError * dt;
+                double velDerivative = (velError - lastVelError) / dt;
+                lastVelError = velError;
+
+                double fTerm = TransferConfig.VELOCITY_F * targetVelocityTicksPerSec;
+                double pTerm = TransferConfig.VELOCITY_P * velError;
+                double iTerm = TransferConfig.VELOCITY_I * velIntegralSum;
+                double dTerm = TransferConfig.VELOCITY_D * velDerivative;
+
+                double outputPower = fTerm + pTerm + iTerm + dTerm;
+                setPower(Range.clip(outputPower, -1.0, 1.0));
+                break;
+            }
+
+            case POSITION_PIDF: {
+                double posError = targetPositionTicks - currentTicks;
+                posIntegralSum += posError * dt;
+                double posDerivative = (posError - lastPosError) / dt;
+                lastPosError = posError;
+
+                double pTerm = TransferConfig.POSITION_P * posError;
+                double iTerm = TransferConfig.POSITION_I * posIntegralSum;
+                double dTerm = TransferConfig.POSITION_D * posDerivative;
+
+                double outputPower = pTerm + iTerm + dTerm;
+                outputPower = Range.clip(outputPower, -1.0, 1.0);
+
+                if (Math.abs(posError) <= 15.0) { // Tolerance in ticks
+                    stop();
+                    controlState = TransferControlState.IDLE;
+                } else {
+                    setPower(outputPower);
+                }
+                break;
+            }
+
+            case PREDICTIVE_INTAKE: {
+                double remainingTicks = targetPositionTicks - currentTicks;
+                double stoppingDistanceTicks = (currentVelocity * currentVelocity) / (2.0 * TransferConfig.MAX_DECEL_TICKS_PER_SEC2);
+
+                if (Math.abs(remainingTicks) <= 15.0) {
+                    stop();
+                    controlState = TransferControlState.IDLE;
+                } else if (Math.abs(remainingTicks) <= Math.abs(stoppingDistanceTicks)) {
+                    double posError = targetPositionTicks - currentTicks;
+                    posIntegralSum += posError * dt;
+                    double posDerivative = (posError - lastPosError) / dt;
+                    lastPosError = posError;
+
+                    double pTerm = TransferConfig.POSITION_P * posError;
+                    double iTerm = TransferConfig.POSITION_I * posIntegralSum;
+                    double dTerm = TransferConfig.POSITION_D * posDerivative;
+
+                    double outputPower = pTerm + iTerm + dTerm;
+                    setPower(Range.clip(outputPower, -1.0, 1.0));
+                } else {
+                    setPower(TransferConfig.REVERSE_POWER);
+                }
+                break;
+            }
+
+            case IDLE:
+            case MANUAL:
+            default:
+                if (isAdvancingSlot) {
+                    isAdvance1SlotComplete();
+                }
+                break;
         }
     }
 
@@ -444,7 +626,7 @@ public class TransferSubsystem {
     }
 
     /**
-     * Returns distance in mm for a specific physical sensor index 
+     * Returns distance in mm for a specific physical sensor index
      * Returns Double.MAX_VALUE if sensor is unavailable.
      */
     public double getDistanceMm(int sensorIndex) {

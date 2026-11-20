@@ -31,8 +31,26 @@ public class TransferConfig {
     public static double FRONT_GATE_CLOSED_POS = 0.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
-    public static double TICKS_PER_REV = 8192; //6192.0; //8192
+    public static double TICKS_PER_REV = 8192.0;
+    public static double TICKS_PER_SLOT = TICKS_PER_REV / 4.0; // 2048 ticks per 90-degree quadrant
     public static boolean ENCODER_REVERSED = true;
+
+    // Velocity PIDF Gains (Shooting Mode)
+    public static double VELOCITY_P = 0.0012;
+    public static double VELOCITY_I = 0.0001;
+    public static double VELOCITY_D = 0.00005;
+    public static double VELOCITY_F = 0.00035; // 1.0 / Max_Velocity_Ticks_Per_Sec
+
+    // Position PID & Predictive Deceleration Gains (Intake Mode)
+    public static double POSITION_P = 0.0025;
+    public static double POSITION_I = 0.00005;
+    public static double POSITION_D = 0.0001;
+    public static double MAX_DECEL_TICKS_PER_SEC2 = 6000.0; // Ticks/sec^2 deceleration limit
+
+    // Operating Target Velocities
+    public static double SHOOT_VELOCITY_TICKS_PER_SEC = 2800.0;  // Fast forward velocity for shooting
+    public static double INTAKE_VELOCITY_TICKS_PER_SEC = -1800.0; // Fast reverse velocity for intaking
+    public static double CREEP_VELOCITY_TICKS_PER_SEC = -300.0;   // Slow reverse velocity for final alignment
 
     // Color Sensor Detection Thresholds (Combined Transfer & Intake Ramp)
     public static double DISTANCE_THRESHOLD_MM = 35.0; // Distance in mm to consider a ball present
