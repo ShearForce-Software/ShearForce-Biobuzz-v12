@@ -1,0 +1,98 @@
+{
+  "version": "2.7.0",
+  "header": {
+    "info": "Created with Turtle Tracer",
+    "copyright": "Copyright 2026 Matthew Allen. Licensed under the Modified Apache License, Version 2.0.",
+    "link": "https://github.com/Mallen220/TurtleTracer"
+  },
+  "startPoint": {
+    "x": 110,
+    "y": 10,
+    "heading": "linear",
+    "locked": false,
+    "startDeg": -180,
+    "endDeg": -180
+  },
+  "lines": [
+    {
+      "id": "mwfjlq22-isu1p7",
+      "name": "",
+      "endPoint": {
+        "x": 130,
+        "y": 29,
+        "heading": "constant",
+        "reverse": false,
+        "startDeg": -90,
+        "endDeg": -90,
+        "degrees": 180
+      },
+      "controlPoints": [],
+      "color": "#7C55BB",
+      "eventMarkers": [],
+      "waitBeforeMs": 0,
+      "waitAfterMs": 0,
+      "waitBeforeName": "",
+      "waitAfterName": "",
+      "hidden": false
+    }
+  ],
+  "sequence": [
+    {
+      "kind": "path",
+      "lineId": "mwfjlq22-isu1p7"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "biobuzz-hive-red",
+      "name": "HiveRedSide",
+      "vertices": [
+        {
+          "x": 46.5,
+          "y": 92
+        },
+        {
+          "x": 46.5,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 52
+        },
+        {
+          "x": 49,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    },
+    {
+      "id": "biobuzz-hive-blue",
+      "name": "HiveBlueSide",
+      "vertices": [
+        {
+          "x": 95,
+          "y": 92
+        },
+        {
+          "x": 95,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 52
+        },
+        {
+          "x": 97.5,
+          "y": 92
+        }
+      ],
+      "color": "#3f3f3f",
+      "fillColor": "#fca5a5",
+      "type": "obstacle"
+    }
+  ],
+  "extraData": {}
+}
