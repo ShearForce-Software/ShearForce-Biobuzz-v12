@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -61,6 +62,8 @@ public class TransferSubsystem {
     public static final int SENSOR_COUNT = 7;
 
     private final CRServo transferServo;
+
+    private final Servo frontGateServo;
     private final DcMotorEx encoderMotor;
 
     // Physical hardware sensors (queried ONLY in UpdateColorSensors)
@@ -89,6 +92,9 @@ public class TransferSubsystem {
     public TransferSubsystem(HardwareMap hardwareMap) {
         // Continuous Rotation Servo
         transferServo = hardwareMap.get(CRServo.class, TransferConfig.SERVO_NAME);
+
+        // Position Servo for Front Gate
+        frontGateServo = hardwareMap.get(Servo.class, TransferConfig.FRONT_GATE_SERVO);
 
         // REV Through Bore Encoder plugged into a Control/Expansion Hub motor encoder port
         encoderMotor = hardwareMap.get(DcMotorEx.class, TransferConfig.ENCODER_NAME);
@@ -622,5 +628,40 @@ public class TransferSubsystem {
                 waitUntil(this::isFull),
                 instant(this::stop)
         );
+    }
+    // --- Front Gate Servo Control Methods ---
+    public void openFrontGate() {
+        frontGateServo.setPosition(TransferConfig.FRONT_GATE_OPEN_POS);
+    }
+
+    public void closeFrontGate() {
+        frontGateServo.setPosition(TransferConfig.FRONT_GATE_CLOSED_POS);
+    }
+
+    public void setFrontGatePosition(double position) {
+        frontGateServo.setPosition(position);
+    }
+
+    public double getFrontGatePosition() {
+        return frontGateServo.getPosition();
+    }
+
+    public Command openFrontGateCommand() {
+        return instant(this::openFrontGate);
+    }
+
+    public Command closeFrontGateCommand() {
+        return instant(this::closeFrontGate);
+    }
+
+    public void updateRamp(IntakeSubsystem intake) {
+        if (getBallCount() < 3) {
+            openFrontGate();
+        } else {
+            closeFrontGate();
+            if (intake != null && isRampFrontBallPresent()) {
+                intake.reverse();
+            }
+        }
     }
 }
