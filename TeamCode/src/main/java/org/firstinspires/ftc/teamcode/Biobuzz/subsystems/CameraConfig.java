@@ -32,6 +32,13 @@ public class CameraConfig {
     // Filter by specific cluster name ("ALL", "RED SCORING", "RED AUDIENCE", "BLUE AUDIENCE", "BLUE SCORING")
     public static String CLUSTER_FILTER = "ALL";
 
+    // --- Camera Physical Mounting Offsets Relative to Robot Center ---
+    // Mounted 4 inches to the right of center (-4.0" Y), 12 inches above floor (+12.0" Z), pointing 90 degrees to the right (-90.0° Yaw)
+    public static double CAMERA_X_OFFSET_INCHES = 0.0;     // Forward (+) / Backward (-) relative to robot center
+    public static double CAMERA_Y_OFFSET_INCHES = -4.0;    // Left (+) / Right (-) relative to robot center: -4.0 = 4" right
+    public static double CAMERA_Z_OFFSET_INCHES = 12.0;   // Height above floor (inches)
+    public static double CAMERA_YAW_OFFSET_DEG = -90.0;   // Yaw rotation relative to robot forward: -90.0° = pointing right
+
     // Private constructor to prevent instantiation
     private CameraConfig() {}
 
@@ -59,10 +66,14 @@ public class CameraConfig {
      * @return A double array containing [pedroX, pedroY, pedroHeading] in inches and radians.
      */
     public static double[] toPedroCoordinates(double ftcX, double ftcY, double ftcHeading) {
+        // Adjust for camera physical mounting offset relative to robot center
+        double robotRelativeX = ftcX - CAMERA_X_OFFSET_INCHES;
+        double robotRelativeY = ftcY - CAMERA_Y_OFFSET_INCHES;
+
         // Shift the origin from the center of the field to the bottom-left corner
         // and map the corresponding rotated vector components.
-        double pedroX = ftcY + HALF_FIELD_INCHES;
-        double pedroY = HALF_FIELD_INCHES - ftcX;
+        double pedroX = robotRelativeY + HALF_FIELD_INCHES;
+        double pedroY = HALF_FIELD_INCHES - robotRelativeX;
 
         // Rotate the heading coordinate system to line up with PedroPathing's 0-radian baseline
         double pedroHeading = ftcHeading - (Math.PI / 2.0);

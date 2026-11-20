@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.summerPedro.TeleOp;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
 
 @TeleOp(name = "summerPedro TeleOp", group = "Testing")
+@Disabled
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class PedroExampleTeleOp extends OpMode {
     private Follower follower;

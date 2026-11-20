@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.Utility;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterConfig;
@@ -37,7 +38,7 @@ FTC Dashboard Instructions:
    - D-Pad Up: Increment target velocity (+50 ticks/sec).
    - D-Pad Down: Decrement target velocity (-50 ticks/sec).
  */
-@TeleOp(name = "Shooter PIDF Tuner", group = "Testing")
+@Utility(name = "Shooter PIDF Tuner", description = "Testing Shooter PIDF Tuning")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class ShooterTuningOpMode extends LinearOpMode {
 

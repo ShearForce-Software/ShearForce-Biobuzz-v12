@@ -83,4 +83,31 @@ public class MatchConfig {
     public static Pose getBackstageGoalPose() {
         return isRedAlliance() ? RED_BACKSTAGE_GOAL : BLUE_BACKSTAGE_GOAL;
     }
+
+    /**
+     * Dynamically resolves and returns the active target Goal Pose based on Alliance Color and Hive State.
+     */
+    public static Pose getActiveGoalPose() {
+        return isAudienceGoalUp() ? getAudienceGoalPose() : getBackstageGoalPose();
+    }
+
+    /**
+     * Validates if a given Pose contains finite, non-NaN numbers and lies within valid field coordinates.
+     *
+     * @param pose The Pose to validate.
+     * @return true if the Pose is valid and safe to pass to PedroPathing.
+     */
+    public static boolean isValidPose(Pose pose) {
+        if (pose == null) return false;
+        double x = pose.x();
+        double y = pose.y();
+        double heading = pose.heading();
+
+        if (Double.isNaN(x) || Double.isInfinite(x)) return false;
+        if (Double.isNaN(y) || Double.isInfinite(y)) return false;
+        if (Double.isNaN(heading) || Double.isInfinite(heading)) return false;
+
+        // Allow field bounds -144 to +144 to safely accommodate standard field boundaries
+        return (Math.abs(x) <= 144.0 && Math.abs(y) <= 144.0);
+    }
 }

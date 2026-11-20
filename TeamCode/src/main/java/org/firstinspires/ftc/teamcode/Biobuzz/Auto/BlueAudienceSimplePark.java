@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
 
-@Autonomous(name = "BlueAudienceSimplePark", group = "summerPedro", preselectTeleOp = "BIOBUZZ TeleOp")
+@Autonomous(name = "BlueAudienceSimplePark", group = "Blue_Audience_Side", preselectTeleOp = "BIOBUZZ TeleOp")
 @SuppressWarnings("unused") // Eliminates the "class never used" warning
 public class BlueAudienceSimplePark extends LinearOpMode {
     //For Sharing-plan-2
