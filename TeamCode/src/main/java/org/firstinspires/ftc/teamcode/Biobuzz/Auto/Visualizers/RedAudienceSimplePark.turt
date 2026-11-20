@@ -10,8 +10,8 @@
     "y": 9,
     "heading": "linear",
     "locked": false,
-    "startDeg": 90,
-    "endDeg": 90
+    "startDeg": -180,
+    "endDeg": -180
   },
   "lines": [
     {
@@ -20,9 +20,9 @@
       "endPoint": {
         "x": 12,
         "y": 96,
-        "heading": "linear",
+        "heading": "constant",
         "reverse": false,
-        "degrees": 90,
+        "degrees": 180,
         "startDeg": 90,
         "endDeg": 90
       },
@@ -32,7 +32,8 @@
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
       "waitBeforeName": "",
-      "waitAfterName": ""
+      "waitAfterName": "",
+      "hidden": false
     }
   ],
   "sequence": [

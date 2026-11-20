@@ -1,31 +1,58 @@
 {
+  "version": "2.7.0",
+  "header": {
+    "info": "Created with Turtle Tracer",
+    "copyright": "Copyright 2026 Matthew Allen. Licensed under the Modified Apache License, Version 2.0.",
+    "link": "https://github.com/Mallen220/TurtleTracer"
+  },
   "startPoint": {
     "x": 15,
     "y": 135,
-    "heading": "constant",
-    "degrees": -90,
-    "locked": false
+    "heading": "linear",
+    "locked": false,
+    "startDeg": 0,
+    "endDeg": 0
   },
   "lines": [
     {
       "id": "mwfjlq22-isu1p7",
       "name": "",
       "endPoint": {
-        "x": 12,
-        "y": 96,
+        "x": 15,
+        "y": 115,
         "heading": "constant",
         "reverse": false,
         "startDeg": -90,
         "endDeg": -90,
-        "degrees": -90
+        "degrees": 0
       },
       "controlPoints": [],
       "color": "#7C55BB",
-      "eventMarkers": [],
+      "eventMarkers": [
+        {
+          "id": "event-mwod0v1r-4vtee6",
+          "name": "",
+          "type": "parametric",
+          "position": 0.5,
+          "time": 560,
+          "endTime": 560,
+          "poseX": 13.55,
+          "poseY": 125,
+          "poseHeading": 0,
+          "lineIndex": 0
+        }
+      ],
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
       "waitBeforeName": "",
-      "waitAfterName": ""
+      "waitAfterName": "",
+      "hidden": false
+    }
+  ],
+  "sequence": [
+    {
+      "kind": "path",
+      "lineId": "mwfjlq22-isu1p7"
     }
   ],
   "shapes": [
@@ -78,19 +105,6 @@
       "color": "#3f3f3f",
       "fillColor": "#fca5a5",
       "type": "obstacle"
-    }
-  ],
-  "sequence": [
-    {
-      "kind": "wait",
-      "id": "mwfiz30j-hz7anx",
-      "name": "",
-      "durationMs": 1000,
-      "locked": false
-    },
-    {
-      "kind": "path",
-      "lineId": "mwfjlq22-isu1p7"
     }
   ],
   "extraData": {}

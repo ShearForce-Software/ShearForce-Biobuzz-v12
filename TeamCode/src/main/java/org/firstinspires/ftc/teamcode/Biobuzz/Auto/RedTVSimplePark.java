@@ -42,8 +42,8 @@ public class RedTVSimplePark extends LinearOpMode {
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
-        Pose startPose = new Pose(15, 135, Math.toRadians(-90));
-        Pose parkPose = new Pose(12, 96, Math.toRadians(-90));
+        Pose startPose = new Pose(15, 135, Math.toRadians(0));
+        Pose parkPose = new Pose(15, 115, Math.toRadians(0));
 
         // Set starting pose
         follower.setPose(startPose);

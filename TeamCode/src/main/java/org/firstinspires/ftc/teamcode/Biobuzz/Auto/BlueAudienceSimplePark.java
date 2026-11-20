@@ -45,8 +45,8 @@ public class BlueAudienceSimplePark extends LinearOpMode {
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
-        Pose startPose = new Pose(84, 10, Math.toRadians(90));
-        Pose parkPose = new Pose(84, 29, Math.toRadians(90));
+        Pose startPose = new Pose(110, 10, Math.toRadians(180));
+        Pose parkPose = new Pose(129, 29, Math.toRadians(180));
 
         // Set starting pose
         follower.setPose(startPose);
@@ -63,7 +63,6 @@ public class BlueAudienceSimplePark extends LinearOpMode {
 
                         follow(follower, startToPark),
                         waitMs(2000),
-                        shooter.firePositionCommand(),
 
 
 

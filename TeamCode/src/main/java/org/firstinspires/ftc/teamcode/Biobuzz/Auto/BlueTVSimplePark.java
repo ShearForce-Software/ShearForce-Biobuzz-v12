@@ -39,8 +39,8 @@ public class BlueTVSimplePark extends LinearOpMode {
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
-        Pose startPose = new Pose(107, 135, Math.toRadians(90));
-        Pose parkPose = new Pose(131, 36, Math.toRadians(90));
+        Pose startPose = new Pose(107, 135, Math.toRadians(0));
+        Pose parkPose = new Pose(129, 45, Math.toRadians(0));
 
         // Set starting pose
         follower.setPose(startPose);
