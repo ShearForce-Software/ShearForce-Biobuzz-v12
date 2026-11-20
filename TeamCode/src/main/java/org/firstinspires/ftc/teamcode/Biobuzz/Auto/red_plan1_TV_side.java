@@ -65,7 +65,7 @@ public class red_plan1_TV_side extends LinearOpMode {
                         follow(follower, backToShootPose),
 
                         // shoot 2
-                       waitMs(2000),
+                        waitMs(2000),
 
                         // park
                         follow(follower, driveToPark),
