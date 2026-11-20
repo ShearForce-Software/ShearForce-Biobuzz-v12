@@ -36,8 +36,8 @@ public class RedAudienceSimplePark extends LinearOpMode {
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
-        Pose startPose = new Pose(24, 9, Math.toRadians(90));
-        Pose parkPose = new Pose(8, 96, Math.toRadians(90));
+        Pose startPose = new Pose(31, 10, Math.toRadians(180));
+        Pose parkPose = new Pose(15, 98, Math.toRadians(180));
 
         // Set starting pose
         follower.setPose(startPose);
