@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.Biobuzz.subsystems;
 import android.util.Size;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
@@ -207,6 +208,20 @@ public class CameraSubsystem {
             }
         }
         return closestCluster;
+    }
+
+    /**
+     * Updates the active Hive state in MatchConfig based on the robot's field Y position
+     * when camera vision tracking is unavailable or disabled.
+     * If the robot's Y position is greater than 72.0 inches, audienceGoalUp is set to false (Backstage/TV Goal active).
+     * Otherwise (Y <= 72.0 inches), audienceGoalUp is set to true (Audience Goal active).
+     *
+     * @param robotPose The current PedroPathing Pose of the robot.
+     */
+    public void updateActiveHiveFromPosition(Pose robotPose) {
+        if (robotPose != null && !Double.isNaN(robotPose.y())) {
+            MatchConfig.audienceGoalUp = (robotPose.y() <= 72.0);
+        }
     }
 
     /**

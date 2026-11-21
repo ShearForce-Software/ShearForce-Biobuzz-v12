@@ -41,10 +41,11 @@ public class TransferConfig {
     public static double VELOCITY_D = 0.00005;
     public static double VELOCITY_F = 0.00035; // 1.0 / Max_Velocity_Ticks_Per_Sec
 
-    // Position PID & Predictive Deceleration Gains (Intake Mode)
+    // Position PIDF & Predictive Deceleration Gains (Intake Mode)
     public static double POSITION_P = 0.0025;
     public static double POSITION_I = 0.00005;
-    public static double POSITION_D = 0.0001;
+    public static double POSITION_D = 0.00015;
+    public static double POSITION_F = 0.04;               // Static friction feedforward offset for CR Servo
     public static double MAX_DECEL_TICKS_PER_SEC2 = 6000.0; // Ticks/sec^2 deceleration limit
 
     // Operating Target Velocities
@@ -55,9 +56,9 @@ public class TransferConfig {
     // Color Sensor Detection Thresholds (Combined Transfer & Intake Ramp)
     public static double DISTANCE_THRESHOLD_MM = 35.0; // Distance in mm to consider a ball present
     public static float RED_MIN_RATIO = 0.40f;          // Min red/total ratio for Red ball
-    public static float BLUE_MIN_RATIO = 0.40f;         // Min blue/total ratio for Blue ball
-    public static float YELLOW_RED_MIN_RATIO = 0.30f;   // Min red ratio for Yellow ball
-    public static float YELLOW_GREEN_MIN_RATIO = 0.30f; // Min green ratio for Yellow ball
+    public static float BLUE_MIN_RATIO = 0.38f;         // Min blue/total ratio for Blue ball
+    public static float YELLOW_RED_MIN_RATIO = 0.32f;   // Min red ratio for Yellow ball
+    public static float YELLOW_GREEN_MIN_RATIO = 0.38f; // Min green ratio for Yellow ball (raised from 0.30f to differentiate from Red)
 
     public static boolean AUTO_TRANSFER = true;
 

@@ -7,8 +7,6 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -21,7 +19,6 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
-import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 
 import java.util.List;
 import java.util.Locale;
@@ -66,8 +63,9 @@ public class BiobuzzTeleOp extends OpMode {
     // Timers & background thread
     private Thread colorSensorThread = null;
     private volatile boolean colorSensorThreadRunning = false;
-    private final ElapsedTime rateLimitTimer = new ElapsedTime();
+    private final ElapsedTime telemetryUpdateTimer = new ElapsedTime();
     private final ElapsedTime visionCorrectionTimer = new ElapsedTime();
+    private final ElapsedTime hiveUpdateTimer = new ElapsedTime();
 
     private DcMotor frontLeftDrive = null;
     private DcMotor backLeftDrive = null;
@@ -137,8 +135,9 @@ public class BiobuzzTeleOp extends OpMode {
         }, "ColorSensorBackgroundThread");
         colorSensorThread.start();
 
-        rateLimitTimer.reset();
+        telemetryUpdateTimer.reset();
         visionCorrectionTimer.reset();
+        hiveUpdateTimer.reset();
     }
 
     @Override
@@ -153,7 +152,8 @@ public class BiobuzzTeleOp extends OpMode {
         if (shooter != null) {
             shooter.startFlywheels();
         }
-        rateLimitTimer.reset();
+        telemetryUpdateTimer.reset();
+        hiveUpdateTimer.reset();
     }
 
     @Override
@@ -195,14 +195,47 @@ public class BiobuzzTeleOp extends OpMode {
         if (gamepad1.dpad_up || gamepad1.dpad_down || gamepad1.dpad_left || gamepad1.dpad_right) {
             double targetHeading = 0;
             if (gamepad1.dpad_up) targetHeading = Math.toRadians(90);        // 90° (Facing TV)
-            else if (gamepad1.dpad_down) targetHeading = Math.toRadians(270); // 2700° (Facing Audience)
+            else if (gamepad1.dpad_down) targetHeading = Math.toRadians(270); // 270° (Facing Audience)
             else if (gamepad1.dpad_left) targetHeading = Math.toRadians(180); // 180° (Facing Red Drivers)
             else if (gamepad1.dpad_right) targetHeading = Math.toRadians(0);  // 0° (Facing Blue Drivers)
 
             double currentHeading = follower.pose().heading();
             double headingError = AngleUnit.normalizeRadians(targetHeading - currentHeading);
-            double kP_headingSnap = 1.2;
-            turn = Range.clip(headingError * kP_headingSnap, -0.75, 0.75);
+
+            // Deadband tolerance window: if within 1.0 degree, stop turning to prevent hunting/bouncing
+            if (Math.abs(headingError) < Math.toRadians(1.0)) {
+                turn = 0;
+            } else {
+                double angularVelocity = follower.localizer.velocity().omega; // rad/sec
+                double kP_headingSnap = 0.9;
+                double kD_headingSnap = 0.08;
+                turn = Range.clip((headingError * kP_headingSnap) - (angularVelocity * kD_headingSnap), -0.65, 0.65);
+            }
+        } else if (gamepad1.square) {
+            // Driver Assistance: Auto-aim Shooter (mounted 90° right of robot forward) at active Hive Goal when Square is held
+            Pose robotPose = follower.pose();
+            Pose goalPose = MatchConfig.getActiveGoalPose();
+            double deltaX = goalPose.x() - robotPose.x();
+            double deltaY = goalPose.y() - robotPose.y();
+
+            // Target field angle from robot to active goal
+            double targetFieldAngle = Math.atan2(deltaY, deltaX);
+
+            // Shooter is offset 90° right (-90° / -PI/2) from robot forward.
+            // Therefore, robot forward heading must equal (targetFieldAngle + 90°) so shooter points at goal.
+            double targetRobotHeading = targetFieldAngle + (Math.PI / 2.0);
+
+            double currentHeading = robotPose.heading();
+            double headingError = AngleUnit.normalizeRadians(targetRobotHeading - currentHeading);
+
+            if (Math.abs(headingError) < Math.toRadians(1.0)) {
+                turn = 0;
+            } else {
+                double angularVelocity = follower.localizer.velocity().omega; // rad/sec
+                double kP_aim = 1.0;
+                double kD_aim = 0.08;
+                turn = Range.clip((headingError * kP_aim) - (angularVelocity * kD_aim), -0.70, 0.70);
+            }
         }
 
         // Command the robot to drive with the joystick / snap inputs
@@ -282,8 +315,15 @@ public class BiobuzzTeleOp extends OpMode {
                 intakeOn = true;
             }
         } else if (gamepad2.squareWasPressed()) {
-            intake.reverse();
-            intakeOn = true;
+            if (gamepad2.share) {
+                // G2: Square + SHARE = Reset Transfer Thru-Bore Encoder Position Count to 0
+                if (transfer != null) {
+                    transfer.resetEncoder();
+                }
+            } else {
+                intake.reverse();
+                intakeOn = true;
+            }
         } else if (gamepad2.circleWasPressed()) {
             if (!gamepad2.options) {
                 intake.turnOff();
@@ -335,18 +375,35 @@ public class BiobuzzTeleOp extends OpMode {
             }
         }
 
-        // Depollinator Servo UP / DOWN
+        // Depollinator Servo UP / DOWN = DPAD UP / DOWN
+        // Shooter Flywheels SPEED = OPTIONS + DPAD UP/DOWN
         if (gamepad2.dpadUpWasPressed()) {
-            intake.depollinatorUp();
+            if (gamepad2.options) {
+                shooter.setVelocity(shooter.getTargetVelocity() + 50.0);
+            } else {
+                intake.depollinatorUp();
+            }
         } else if (gamepad2.dpadDownWasPressed()) {
-            intake.depollinatorDown();
+            if (gamepad2.options) {
+                shooter.setVelocity(shooter.getTargetVelocity() - 50.0);
+            } else {
+                intake.depollinatorDown();
+            }
+        }
+
+        // Rate-limited Active Hive Position Update (5 Hz rate -> 200 ms interval)
+        if (hiveUpdateTimer.milliseconds() >= 200) {
+            hiveUpdateTimer.reset();
+            if (camera != null && follower != null) {
+                camera.updateActiveHiveFromPosition(follower.pose());
+            }
         }
 
         // =========================================================================
         // TELEMETRY OUTPUTS (Called at 5 Hz rate -> 200 ms interval)
         // =========================================================================
-        if (rateLimitTimer.milliseconds() >= 200) {
-            rateLimitTimer.reset();
+        if (telemetryUpdateTimer.milliseconds() >= 200) {
+            telemetryUpdateTimer.reset();
             PrintTelemetry();
         }
     }
@@ -475,12 +532,13 @@ public class BiobuzzTeleOp extends OpMode {
 
         // --- Controls Summary ---
         telemetry.addLine("=== Controls Summary ===");
-        telemetry.addLine("G1: Joysticks = Drive   | D-Pad = Snap Heading   | Triangle = Reset Heading");
-        telemetry.addLine("G1: Triangle + Options = Toggle Field Centric / Robot Centric");
+        telemetry.addLine("G1: Joysticks = Drive   | D-Pad = Snap Heading   | Square = Aim Shooter at Goal");
+        telemetry.addLine("G1: Triangle = Reset Heading | Triangle + Options = Toggle Field/Robot Mode");
         telemetry.addLine("G1: Circle = Toggle Auto Vision Heading Correction Mode");
 
         telemetry.addLine("G2: Left Bumper = Shoot All | Left Trigger = Shoot 1 | Right Trigger = Stop Transfer");
         telemetry.addLine("G2: DPAD Left/Right = Hood | Triangle = Flywheels | Square = EJECT");
+        telemetry.addLine("G2: Square + SHARE = Reset Transfer Encoder");
         telemetry.addLine("G2: D-Pad Up/Down = Depollinator UP/DOWN         | Right Bumper = 1 Slot Load");
         telemetry.addLine("G2: Right Bumper + SHARE = 1/2 Slot Load (STOW)");
         telemetry.addLine("G2: Triangle + SHARE = Auto Transfer MODE Toggle");

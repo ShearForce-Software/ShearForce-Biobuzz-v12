@@ -14,6 +14,14 @@ import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
  * Allows tuning the CRServo position & velocity PIDF gains live via PS4/Gamepad controller
  * to ensure the transfer system rotates by exact slot/tick increments and stops accurately in time.
  *
+ * TUNING WORKFLOW GUIDELINES FOR ACCURATE & CONSISTENT SLOT MOVEMENT:
+ * 1. Start with POSITION_I = 0, POSITION_D = 0, and POSITION_F = 0.
+ * 2. Increase POSITION_P until the transfer disk moves quickly toward the target slot.
+ * 3. Increase POSITION_D to damp out overshoot/bouncing as the slot settles (uses direct encoder velocity).
+ * 4. If the disk stops 15-30 ticks short of the target due to CRServo static friction,
+ *    add a small POSITION_F feedforward (0.03 to 0.06) to overcome breakaway static friction.
+ * 5. Verify settling with 0, 1, 2, 3, and 4 balls loaded to ensure consistent slot indexing under variable mass.
+ *
  * PS4 / Gamepad 1 Controls:
  * - Cross (A): Execute PIDF Rotation FORWARD by selected slot increment
  * - Triangle (Y): Execute PIDF Rotation REVERSE by selected slot increment
@@ -32,6 +40,7 @@ public class TransferPIDFTunerOpMode extends LinearOpMode {
         POSITION_P("POSITION_P (Proportional Gain)"),
         POSITION_I("POSITION_I (Integral Gain)"),
         POSITION_D("POSITION_D (Derivative Gain)"),
+        POSITION_F("POSITION_F (Static Friction Feedforward)"),
         VELOCITY_F("VELOCITY_F (Feedforward Gain)"),
         MAX_DECEL("MAX_DECEL (Max Decel Ticks/s²)");
 
@@ -168,6 +177,7 @@ public class TransferPIDFTunerOpMode extends LinearOpMode {
             telemetry.addData("POSITION_P", "%.6f %s", TransferConfig.POSITION_P, activeParam == PIDFParameter.POSITION_P ? " <-- EDITING" : "");
             telemetry.addData("POSITION_I", "%.6f %s", TransferConfig.POSITION_I, activeParam == PIDFParameter.POSITION_I ? " <-- EDITING" : "");
             telemetry.addData("POSITION_D", "%.6f %s", TransferConfig.POSITION_D, activeParam == PIDFParameter.POSITION_D ? " <-- EDITING" : "");
+            telemetry.addData("POSITION_F", "%.6f %s", TransferConfig.POSITION_F, activeParam == PIDFParameter.POSITION_F ? " <-- EDITING" : "");
             telemetry.addData("VELOCITY_F", "%.6f %s", TransferConfig.VELOCITY_F, activeParam == PIDFParameter.VELOCITY_F ? " <-- EDITING" : "");
             telemetry.addData("MAX_DECEL", "%.1f ticks/s² %s", TransferConfig.MAX_DECEL_TICKS_PER_SEC2, activeParam == PIDFParameter.MAX_DECEL ? " <-- EDITING" : "");
 
@@ -204,6 +214,9 @@ public class TransferPIDFTunerOpMode extends LinearOpMode {
             case POSITION_D:
                 TransferConfig.POSITION_D = Math.max(0.0, TransferConfig.POSITION_D + delta);
                 break;
+            case POSITION_F:
+                TransferConfig.POSITION_F = Math.max(0.0, TransferConfig.POSITION_F + delta);
+                break;
             case VELOCITY_F:
                 TransferConfig.VELOCITY_F = Math.max(0.0, TransferConfig.VELOCITY_F + delta);
                 break;
@@ -218,6 +231,7 @@ public class TransferPIDFTunerOpMode extends LinearOpMode {
             case POSITION_P: return TransferConfig.POSITION_P;
             case POSITION_I: return TransferConfig.POSITION_I;
             case POSITION_D: return TransferConfig.POSITION_D;
+            case POSITION_F: return TransferConfig.POSITION_F;
             case VELOCITY_F: return TransferConfig.VELOCITY_F;
             case MAX_DECEL: return TransferConfig.MAX_DECEL_TICKS_PER_SEC2;
             default: return 0.0;

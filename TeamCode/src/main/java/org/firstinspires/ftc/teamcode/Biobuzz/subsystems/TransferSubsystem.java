@@ -239,13 +239,19 @@ public class TransferSubsystem {
                     float greenRatio = rgba.green / totalLight;
                     float blueRatio = rgba.blue / totalLight;
 
-                    if (redRatio >= TransferConfig.YELLOW_RED_MIN_RATIO && greenRatio >= TransferConfig.YELLOW_GREEN_MIN_RATIO) {
-                        cachedBallColor[i] = BallColor.YELLOW;
-                    } else if (redRatio >= TransferConfig.RED_MIN_RATIO) {
-                        cachedBallColor[i] = BallColor.RED;
-                    } else if (blueRatio >= TransferConfig.BLUE_MIN_RATIO) {
+                    // 1. Blue Check (Blue has high blueRatio)
+                    if (blueRatio >= TransferConfig.BLUE_MIN_RATIO) {
                         cachedBallColor[i] = BallColor.BLUE;
-                    } else {
+                    } 
+                    // 2. Yellow Check (Yellow is the ONLY ball with HIGH Green >= 0.38)
+                    else if (redRatio >= TransferConfig.YELLOW_RED_MIN_RATIO && greenRatio >= TransferConfig.YELLOW_GREEN_MIN_RATIO) {
+                        cachedBallColor[i] = BallColor.YELLOW;
+                    } 
+                    // 3. Red Check (High Red, but lower Green < 0.38)
+                    else if (redRatio >= TransferConfig.RED_MIN_RATIO) {
+                        cachedBallColor[i] = BallColor.RED;
+                    } 
+                    else {
                         cachedBallColor[i] = BallColor.UNKNOWN;
                     }
                 }
@@ -523,17 +529,25 @@ public class TransferSubsystem {
             case POSITION_PIDF: {
                 double posError = targetPositionTicks - currentTicks;
                 posIntegralSum += posError * dt;
-                double posDerivative = (posError - lastPosError) / dt;
+                if (Math.abs(posError) < 15.0) posIntegralSum = 0.0; // Anti-windup clamping
                 lastPosError = posError;
 
                 double pTerm = TransferConfig.POSITION_P * posError;
                 double iTerm = TransferConfig.POSITION_I * posIntegralSum;
-                double dTerm = TransferConfig.POSITION_D * posDerivative;
+                // Use direct encoder velocity for smooth derivative damping
+                // This acts as an active magnetic brake that scales with how fast the transfer disc is spinning,
+                // eliminating overshoot regardless of ball load
+                double dTerm = -TransferConfig.POSITION_D * currentVelocity;
+                // Static friction feedforward offset (kF)
+                // this value is used to overcome CR Servo breakaway static friction
+                double fTerm = Math.signum(posError) * TransferConfig.POSITION_F;
 
-                double outputPower = pTerm + iTerm + dTerm;
+                double outputPower = pTerm + iTerm + dTerm + fTerm;
                 outputPower = Range.clip(outputPower, -1.0, 1.0);
 
-                if (Math.abs(posError) <= 15.0) { // Tolerance in ticks
+                // Dual settling condition (Position error <= 25.0 ticks AND velocity <= 50.0 ticks/sec)
+                // this logic requires the target disc to be within target tolerance AND moving slowly before declaring completion
+                if (Math.abs(posError) <= 25.0 && Math.abs(currentVelocity) <= 50.0) {
                     stop();
                     controlState = TransferControlState.IDLE;
                 } else {
@@ -546,20 +560,23 @@ public class TransferSubsystem {
                 double remainingTicks = targetPositionTicks - currentTicks;
                 double stoppingDistanceTicks = (currentVelocity * currentVelocity) / (2.0 * TransferConfig.MAX_DECEL_TICKS_PER_SEC2);
 
-                if (Math.abs(remainingTicks) <= 15.0) {
+                // Dual settling condition (Position error <= 25.0 ticks AND velocity <= 50.0 ticks/sec)
+                // this logic requires the target disc to be within target tolerance AND moving slowly before declaring completion
+                if (Math.abs(remainingTicks) <= 25.0 && Math.abs(currentVelocity) <= 50.0) {
                     stop();
                     controlState = TransferControlState.IDLE;
                 } else if (Math.abs(remainingTicks) <= Math.abs(stoppingDistanceTicks)) {
                     double posError = targetPositionTicks - currentTicks;
                     posIntegralSum += posError * dt;
-                    double posDerivative = (posError - lastPosError) / dt;
+                    if (Math.abs(posError) < 15.0) posIntegralSum = 0.0;
                     lastPosError = posError;
 
                     double pTerm = TransferConfig.POSITION_P * posError;
                     double iTerm = TransferConfig.POSITION_I * posIntegralSum;
-                    double dTerm = TransferConfig.POSITION_D * posDerivative;
+                    double dTerm = -TransferConfig.POSITION_D * currentVelocity;
+                    double fTerm = Math.signum(posError) * TransferConfig.POSITION_F;
 
-                    double outputPower = pTerm + iTerm + dTerm;
+                    double outputPower = pTerm + iTerm + dTerm + fTerm;
                     setPower(Range.clip(outputPower, -1.0, 1.0));
                 } else {
                     setPower(TransferConfig.REVERSE_POWER);
@@ -588,11 +605,9 @@ public class TransferSubsystem {
     }
 
     public void resetEncoder() {
-        double raw = encoderMotor.getCurrentPosition();
-        if (TransferConfig.ENCODER_REVERSED) {
-            raw = -raw;
-        }
-        encoderOffsetTicks = raw;
+        encoderMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        encoderMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        encoderOffsetTicks = 0;
     }
 
     public double getRotations() {
