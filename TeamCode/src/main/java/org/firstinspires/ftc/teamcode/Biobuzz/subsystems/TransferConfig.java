@@ -12,6 +12,7 @@ public class TransferConfig {
     // Hardware Map Device Names
     public static String SERVO_NAME = "transferServo";
     public static String FRONT_GATE_SERVO = "frontGateServo";
+    public static String BACK_GATE_SERVO = "backGateServo";
     public static String ENCODER_NAME = "leftFront_leftOdometry";
     public static String COLOR_SENSOR_TOP_NAME = "transferColorTop";
     public static String COLOR_SENSOR_LEFT_NAME = "transferColorLeft";
@@ -29,6 +30,8 @@ public class TransferConfig {
     // Front Gate Servo Position Constants
     public static double FRONT_GATE_OPEN_POS = 1.0;
     public static double FRONT_GATE_CLOSED_POS = 0.0;
+    public static double BACK_GATE_OPEN_POS = 1.0;
+    public static double BACK_GATE_CLOSE_POS = 0.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
     public static double TICKS_PER_REV = 8192.0;

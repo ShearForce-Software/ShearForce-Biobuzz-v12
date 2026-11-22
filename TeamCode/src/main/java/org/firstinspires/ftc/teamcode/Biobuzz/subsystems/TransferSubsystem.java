@@ -75,6 +75,7 @@ public class TransferSubsystem {
     private final CRServo transferServo;
 
     private final Servo frontGateServo;
+    private final Servo backGateServo;
     private final DcMotorEx encoderMotor;
 
     // Physical hardware sensors (queried ONLY in UpdateColorSensors)
@@ -116,6 +117,9 @@ public class TransferSubsystem {
 
         // Position Servo for Front Gate
         frontGateServo = hardwareMap.get(Servo.class, TransferConfig.FRONT_GATE_SERVO);
+
+        // Position Servo for Back Gate
+        backGateServo = hardwareMap.get(Servo.class, TransferConfig.BACK_GATE_SERVO);
 
         // REV Through Bore Encoder plugged into a Control/Expansion Hub motor encoder port
         encoderMotor = hardwareMap.get(DcMotorEx.class, TransferConfig.ENCODER_NAME);
@@ -843,20 +847,34 @@ public class TransferSubsystem {
         return frontGateServo.getPosition();
     }
 
-    public Command openFrontGateCommand() {
-        return instant(this::openFrontGate);
+    // --- Back Gate Servo Control Methods ---
+    public void openBackGate() {
+        backGateServo.setPosition(TransferConfig.BACK_GATE_OPEN_POS);
     }
 
-    public Command closeFrontGateCommand() {
-        return instant(this::closeFrontGate);
+    public void closeBackGate() {
+        backGateServo.setPosition(TransferConfig.BACK_GATE_CLOSE_POS);
+    }
+
+    public void setBackGatePosition(double position) {
+        backGateServo.setPosition(position);
+    }
+
+    public double getBackGatePosition() {
+        return backGateServo.getPosition();
     }
 
     public void updateRamp(IntakeSubsystem intake) {
-        if (getBallCount() < 3) {
+        if (isRampFrontBallPresent() && getBallCount() < 4) {
             openFrontGate();
-        } else {
+            closeBackGate();
+        } else if (isRampBackBallPresent() && getBallCount() < 4) {
+            openBackGate();
             closeFrontGate();
-            if (intake != null && isRampFrontBallPresent()) {
+        } else if ((isRampFrontBallPresent() || isRampBackBallPresent()) && getBallCount() >= 4) {
+            closeFrontGate();
+            closeBackGate();
+            if (intake != null) {
                 intake.reverse();
             }
         }
