@@ -53,7 +53,7 @@ public class _ExampleRedAuto extends LinearOpMode {
         // Instantiate Pedro Follower and Subsystems
         follower = Constants.create(hardwareMap);
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
-        TransferSubsystem transfer = new TransferSubsystem(hardwareMap);
+        TransferSubsystem transfer = new TransferSubsystem(hardwareMap, intake);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
         CameraSubsystem camera = new CameraSubsystem(hardwareMap);
         ElapsedTime matchTimer = new ElapsedTime();

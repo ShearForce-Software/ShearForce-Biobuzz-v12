@@ -58,7 +58,7 @@ This file tracks the upcoming software tasks.
   - [✅] Test ability to detect difference of color between Nectar or Pollen in each slot
   - [ ] (Shrey and Gianna) **Add PIDF tuning for transfer system rotate CRServo**
   - [ ] Test and verify ability to move **exactly** 1 slot without overshooting
-  - [ ] Move auto transfer logic from BiobuzzTeleOp to TransferSubsystem.update() method so can be reused in autonomous routes
+  - [✅] Move auto transfer logic from BiobuzzTeleOp to TransferSubsystem.update() method so can be reused in autonomous routes
   - [ ] Add logic to auto switch Nectar/Pollen servo to the correct position based on ball color in each slot
     - For mixed loads will need to auto shoot 1 at a time probably to allow time to switch servo positions 
 - [ ] **SHOOTER Subsystem**

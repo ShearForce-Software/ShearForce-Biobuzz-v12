@@ -111,7 +111,11 @@ public class TransferSubsystem {
     private double lastPosError = 0.0;
     private final ElapsedTime pidTimer = new ElapsedTime();
 
-    public TransferSubsystem(HardwareMap hardwareMap) {
+    private final IntakeSubsystem intake;
+
+    public TransferSubsystem(HardwareMap hardwareMap, IntakeSubsystem intakeSubsystem) {
+        intake = intakeSubsystem;
+
         // Continuous Rotation Servo
         transferServo = hardwareMap.get(CRServo.class, TransferConfig.SERVO_NAME);
 
@@ -164,6 +168,163 @@ public class TransferSubsystem {
 
         // Perform initial sensor read to populate cache
         UpdateColorSensors();
+    }
+
+    /**
+     * Call inside your OpMode loop to monitor sensors, PIDF calculations, and slot advancement.
+     */
+    public void update() {
+        //UpdateColorSensors();
+        updateAutoTransferLogic();
+
+        updateRamp();
+
+        updateTransferPositionAndVelocity();
+
+    }
+    private void updateRamp() {
+        if (isRampFrontBallPresent() && getBallCount() < 4) {
+            openFrontGate();
+            closeBackGate();
+        } else if (isRampBackBallPresent() && getBallCount() < 4) {
+            openBackGate();
+            closeFrontGate();
+        } else if ((isRampFrontBallPresent() || isRampBackBallPresent()) && isFull()) {
+            closeFrontGate();
+            closeBackGate();
+            if (intake != null) {
+                intake.reverse();
+            }
+        } else {
+            closeFrontGate();
+            closeBackGate();
+        }
+    }
+
+    private void updateAutoTransferLogic() {
+        // if Auto Transfer Logic enabled (non-blocking) (toggle on/off by using SHARE + TRIANGLE)
+        if (TransferConfig.AUTO_TRANSFER) {
+            // if intake is turned on (bringing in new balls)
+            if (intake.getVelocity() > 0) {
+                // if transfer is not already in progress
+                if (!IsBusy()) {
+                    // if a ball is in the bottom slot
+                    if (isSlotOccupied(SENSOR_BOTTOM_FRONT) || isSlotOccupied(SENSOR_BOTTOM_BACK)) {
+                        // if intake is already full then we are controlling too many balls!!!
+                        if (isFull()) {
+                            StowBalls();
+                            // spit out any extra balls
+                            intake.reverse();
+                        } else {
+                            Load1Ball();
+                        }
+                    } else if (isFull()) {
+                        StowBalls();
+                        // spit out anything else not being detected yet
+                        intake.reverse();
+                    }
+                }
+                // else if out-taking and velocity has reached at least 80% of target velocity and no more extra balls are being detected
+            } else if ((intake.getVelocity() < -intake.targetVelocityTicks * 0.8) &&
+                    !(isRampFrontBallPresent() || isRampBackBallPresent())) {
+                // assume it is safe to turn off the intake subsystem
+                intake.turnOff();
+             }
+        }
+    }
+
+    private void updateTransferPositionAndVelocity() {
+
+        double dt = pidTimer.seconds();
+        pidTimer.reset();
+        if (dt <= 0 || dt > 0.1) dt = 0.005;
+
+        double currentTicks = getRawTicks();
+        double currentVelocity = getVelocityTicksPerSec();
+
+        switch (controlState) {
+            case VELOCITY_CONTROL: {
+                double velError = targetVelocityTicksPerSec - currentVelocity;
+                velIntegralSum += velError * dt;
+                double velDerivative = (velError - lastVelError) / dt;
+                lastVelError = velError;
+
+                double fTerm = TransferConfig.VELOCITY_F * targetVelocityTicksPerSec;
+                double pTerm = TransferConfig.VELOCITY_P * velError;
+                double iTerm = TransferConfig.VELOCITY_I * velIntegralSum;
+                double dTerm = TransferConfig.VELOCITY_D * velDerivative;
+
+                double outputPower = fTerm + pTerm + iTerm + dTerm;
+                setPower(Range.clip(outputPower, -1.0, 1.0));
+                break;
+            }
+
+            case POSITION_PIDF: {
+                double posError = targetPositionTicks - currentTicks;
+                posIntegralSum += posError * dt;
+                if (Math.abs(posError) < 15.0) posIntegralSum = 0.0; // Anti-windup clamping
+                lastPosError = posError;
+
+                double pTerm = TransferConfig.POSITION_P * posError;
+                double iTerm = TransferConfig.POSITION_I * posIntegralSum;
+                // Use direct encoder velocity for smooth derivative damping
+                // This acts as an active magnetic brake that scales with how fast the transfer disc is spinning,
+                // eliminating overshoot regardless of ball load
+                double dTerm = -TransferConfig.POSITION_D * currentVelocity;
+                // Static friction feedforward offset (kF)
+                // this value is used to overcome CR Servo breakaway static friction
+                double fTerm = Math.signum(posError) * TransferConfig.POSITION_F;
+
+                double outputPower = pTerm + iTerm + dTerm + fTerm;
+                outputPower = Range.clip(outputPower, -1.0, 1.0);
+
+                // Dual settling condition (Position error <= 25.0 ticks AND velocity <= 50.0 ticks/sec)
+                // this logic requires the target disc to be within target tolerance AND moving slowly before declaring completion
+                if (Math.abs(posError) <= 25.0 && Math.abs(currentVelocity) <= 50.0) {
+                    stop();
+                    controlState = TransferControlState.IDLE;
+                } else {
+                    setPower(outputPower);
+                }
+                break;
+            }
+
+            case PREDICTIVE_INTAKE: {
+                double remainingTicks = targetPositionTicks - currentTicks;
+                double stoppingDistanceTicks = (currentVelocity * currentVelocity) / (2.0 * TransferConfig.MAX_DECEL_TICKS_PER_SEC2);
+
+                // Dual settling condition (Position error <= 25.0 ticks AND velocity <= 50.0 ticks/sec)
+                // this logic requires the target disc to be within target tolerance AND moving slowly before declaring completion
+                if (Math.abs(remainingTicks) <= 25.0 && Math.abs(currentVelocity) <= 50.0) {
+                    stop();
+                    controlState = TransferControlState.IDLE;
+                } else if (Math.abs(remainingTicks) <= Math.abs(stoppingDistanceTicks)) {
+                    double posError = targetPositionTicks - currentTicks;
+                    posIntegralSum += posError * dt;
+                    if (Math.abs(posError) < 15.0) posIntegralSum = 0.0;
+                    lastPosError = posError;
+
+                    double pTerm = TransferConfig.POSITION_P * posError;
+                    double iTerm = TransferConfig.POSITION_I * posIntegralSum;
+                    double dTerm = -TransferConfig.POSITION_D * currentVelocity;
+                    double fTerm = Math.signum(posError) * TransferConfig.POSITION_F;
+
+                    double outputPower = pTerm + iTerm + dTerm + fTerm;
+                    setPower(Range.clip(outputPower, -1.0, 1.0));
+                } else {
+                    setPower(TransferConfig.REVERSE_POWER);
+                }
+                break;
+            }
+
+            case IDLE:
+            case MANUAL:
+            default:
+                if (isAdvancingSlot) {
+                    isAdvance1SlotComplete();
+                }
+                break;
+        }
     }
 
     /**
@@ -330,13 +491,16 @@ public class TransferSubsystem {
 
     /**
      * Rotates the transfer by a specified relative number of slots (1 slot = 2048 ticks) using closed-loop PIDF position control.
+     * Snaps target to the nearest exact slot boundary (N * TICKS_PER_SLOT) to prevent error accumulation.
      * Positive slots rotate forward, negative slots rotate in reverse.
      *
      * @param numberOfSlots Number of slots to rotate (e.g. 1.0, 0.5, -1.0).
      */
     public void rotateSlotsPIDF(double numberOfSlots) {
-        double deltaTicks = numberOfSlots * TransferConfig.TICKS_PER_SLOT;
-        setTargetTicksPIDF(getRawTicks() + deltaTicks);
+        double currentTicks = getRawTicks();
+        double currentSlot = currentTicks / TransferConfig.TICKS_PER_SLOT;
+        double targetSlot = Math.round(currentSlot) + numberOfSlots;
+        setTargetTicksPIDF(targetSlot * TransferConfig.TICKS_PER_SLOT);
     }
 
     /**
@@ -404,198 +568,62 @@ public class TransferSubsystem {
 
     public void advance1Slot(boolean forward) {
         this.advanceForward = forward;
-        double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
-        if (forward) {
-            targetEncoderTicks = getRawTicks() + quarterRotationTicks;
-            rotateForward();
-        } else {
-            targetEncoderTicks = getRawTicks() - quarterRotationTicks;
-            rotateReverse();
-        }
-        isAdvancingSlot = true;
+        this.isAdvancingSlot = true;
+        rotateSlotsPIDF(forward ? 1.0 : -1.0);
     }
 
     /**
-     * Rotates the transfer forward by 1 slot (1/4 full rotation).
+     * Rotates the transfer forward by 1 slot (1/4 full rotation) using PIDF position control.
      */
     public void Shoot1Ball() {
         advance1Slot(true);
     }
 
     /**
-     * Rotates the transfer forward by 5 slots (1 full rotation + 1/4 rotation for extra measure).
+     * Rotates the transfer forward by 5 slots (1 full rotation + 1/4 rotation) using PIDF position control.
      */
     public void ShootAllBalls() {
         this.advanceForward = true;
-        double quarterRotationTicks = TransferConfig.TICKS_PER_REV / 4.0;
-
-        // rotate 5 slots (all balls should shoot out)
-        targetEncoderTicks = getRawTicks() + TransferConfig.TICKS_PER_REV + quarterRotationTicks;
-        rotateForward();
-        isAdvancingSlot = true;
+        this.isAdvancingSlot = true;
+        rotateSlotsPIDF(5.0);
     }
 
     /**
-     * Rotates the transfer in reverse by 1 slot (1/4 full rotation).
+     * Rotates the transfer in reverse by 1 slot (1/4 full rotation) using PIDF position control.
      */
     public void Load1Ball() {
         advance1Slot(false);
     }
 
     /**
-     * Rotates the transfer in reverse by 1/2 slot (1/8 full rotation)
-     * to keep bottom ball from falling out until ready to shoot
+     * Rotates the transfer in reverse by 1/2 slot (1/8 full rotation) using PIDF position control
+     * to keep bottom ball from falling out until ready to shoot.
      */
     public void StowBalls() {
         this.advanceForward = false;
-        double eighthRotationTicks = TransferConfig.TICKS_PER_REV / 8.0;
-        targetEncoderTicks = getRawTicks() - eighthRotationTicks;
-        rotateReverse();
-        isAdvancingSlot = true;
+        this.isAdvancingSlot = true;
+        rotateSlotsPIDF(-0.5);
     }
 
     public boolean IsBusy() {
-        return isAdvancingSlot || controlState != TransferControlState.IDLE;
+        return controlState != TransferControlState.IDLE || isAdvancingSlot;
     }
 
     /**
-     * Returns the transfer to the zero position (ready to take in first ball)
+     * Returns the transfer to the zero position (ready to take in first ball) using PIDF position control.
      */
     public void ReturnToZeroPosition() {
-        targetEncoderTicks = 0;
-
-        if (targetEncoderTicks != getRawTicks()) {
-            if (targetEncoderTicks > getRawTicks()) {
-                this.advanceForward = true;
-                rotateForward();
-            } else {
-                this.advanceForward = false;
-                rotateReverse();
-            }
-            isAdvancingSlot = true;
-        }
+        this.advanceForward = false;
+        this.isAdvancingSlot = true;
+        setTargetTicksPIDF(0.0);
     }
 
     public boolean isAdvance1SlotComplete() {
-        if (!isAdvancingSlot) {
+        if (controlState == TransferControlState.IDLE) {
+            isAdvancingSlot = false;
             return true;
         }
-
-        if (advanceForward) {
-            if (getRawTicks() >= targetEncoderTicks) {
-                stop();
-
-                if (TransferConfig.AUTO_TRANSFER) {
-                    ReturnToZeroPosition();
-                } else {
-                    return true;
-                }
-            }
-        } else {
-            if (getRawTicks() <= targetEncoderTicks) {
-                stop();
-                return true;
-            }
-        }
         return false;
-    }
-
-    /**
-     * Call inside your OpMode loop to monitor sensors, PIDF calculations, and slot advancement.
-     */
-    public void update() {
-        UpdateColorSensors();
-
-        double dt = pidTimer.seconds();
-        pidTimer.reset();
-        if (dt <= 0 || dt > 0.1) dt = 0.005;
-
-        double currentTicks = getRawTicks();
-        double currentVelocity = getVelocityTicksPerSec();
-
-        switch (controlState) {
-            case VELOCITY_CONTROL: {
-                double velError = targetVelocityTicksPerSec - currentVelocity;
-                velIntegralSum += velError * dt;
-                double velDerivative = (velError - lastVelError) / dt;
-                lastVelError = velError;
-
-                double fTerm = TransferConfig.VELOCITY_F * targetVelocityTicksPerSec;
-                double pTerm = TransferConfig.VELOCITY_P * velError;
-                double iTerm = TransferConfig.VELOCITY_I * velIntegralSum;
-                double dTerm = TransferConfig.VELOCITY_D * velDerivative;
-
-                double outputPower = fTerm + pTerm + iTerm + dTerm;
-                setPower(Range.clip(outputPower, -1.0, 1.0));
-                break;
-            }
-
-            case POSITION_PIDF: {
-                double posError = targetPositionTicks - currentTicks;
-                posIntegralSum += posError * dt;
-                if (Math.abs(posError) < 15.0) posIntegralSum = 0.0; // Anti-windup clamping
-                lastPosError = posError;
-
-                double pTerm = TransferConfig.POSITION_P * posError;
-                double iTerm = TransferConfig.POSITION_I * posIntegralSum;
-                // Use direct encoder velocity for smooth derivative damping
-                // This acts as an active magnetic brake that scales with how fast the transfer disc is spinning,
-                // eliminating overshoot regardless of ball load
-                double dTerm = -TransferConfig.POSITION_D * currentVelocity;
-                // Static friction feedforward offset (kF)
-                // this value is used to overcome CR Servo breakaway static friction
-                double fTerm = Math.signum(posError) * TransferConfig.POSITION_F;
-
-                double outputPower = pTerm + iTerm + dTerm + fTerm;
-                outputPower = Range.clip(outputPower, -1.0, 1.0);
-
-                // Dual settling condition (Position error <= 25.0 ticks AND velocity <= 50.0 ticks/sec)
-                // this logic requires the target disc to be within target tolerance AND moving slowly before declaring completion
-                if (Math.abs(posError) <= 25.0 && Math.abs(currentVelocity) <= 50.0) {
-                    stop();
-                    controlState = TransferControlState.IDLE;
-                } else {
-                    setPower(outputPower);
-                }
-                break;
-            }
-
-            case PREDICTIVE_INTAKE: {
-                double remainingTicks = targetPositionTicks - currentTicks;
-                double stoppingDistanceTicks = (currentVelocity * currentVelocity) / (2.0 * TransferConfig.MAX_DECEL_TICKS_PER_SEC2);
-
-                // Dual settling condition (Position error <= 25.0 ticks AND velocity <= 50.0 ticks/sec)
-                // this logic requires the target disc to be within target tolerance AND moving slowly before declaring completion
-                if (Math.abs(remainingTicks) <= 25.0 && Math.abs(currentVelocity) <= 50.0) {
-                    stop();
-                    controlState = TransferControlState.IDLE;
-                } else if (Math.abs(remainingTicks) <= Math.abs(stoppingDistanceTicks)) {
-                    double posError = targetPositionTicks - currentTicks;
-                    posIntegralSum += posError * dt;
-                    if (Math.abs(posError) < 15.0) posIntegralSum = 0.0;
-                    lastPosError = posError;
-
-                    double pTerm = TransferConfig.POSITION_P * posError;
-                    double iTerm = TransferConfig.POSITION_I * posIntegralSum;
-                    double dTerm = -TransferConfig.POSITION_D * currentVelocity;
-                    double fTerm = Math.signum(posError) * TransferConfig.POSITION_F;
-
-                    double outputPower = pTerm + iTerm + dTerm + fTerm;
-                    setPower(Range.clip(outputPower, -1.0, 1.0));
-                } else {
-                    setPower(TransferConfig.REVERSE_POWER);
-                }
-                break;
-            }
-
-            case IDLE:
-            case MANUAL:
-            default:
-                if (isAdvancingSlot) {
-                    isAdvance1SlotComplete();
-                }
-                break;
-        }
     }
 
     // --- REV Through Bore Encoder Methods ---
@@ -864,19 +892,4 @@ public class TransferSubsystem {
         return backGateServo.getPosition();
     }
 
-    public void updateRamp(IntakeSubsystem intake) {
-        if (isRampFrontBallPresent() && getBallCount() < 4) {
-            openFrontGate();
-            closeBackGate();
-        } else if (isRampBackBallPresent() && getBallCount() < 4) {
-            openBackGate();
-            closeFrontGate();
-        } else if ((isRampFrontBallPresent() || isRampBackBallPresent()) && getBallCount() >= 4) {
-            closeFrontGate();
-            closeBackGate();
-            if (intake != null) {
-                intake.reverse();
-            }
-        }
-    }
 }

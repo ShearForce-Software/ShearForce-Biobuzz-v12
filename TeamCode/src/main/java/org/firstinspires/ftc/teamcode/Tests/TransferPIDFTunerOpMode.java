@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Utility;
 
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
 
@@ -51,8 +52,6 @@ public class TransferPIDFTunerOpMode extends LinearOpMode {
         }
     }
 
-    private TransferSubsystem transfer;
-
     // Slot increment options (1 slot = 2048 ticks = 90 degrees)
     private final double[] slotIncrementOptions = {0.25, 0.5, 1.0, 2.0, 3.0, 4.0};
     private int slotIncrementIndex = 2; // Default = 1.0 slot
@@ -70,7 +69,11 @@ public class TransferPIDFTunerOpMode extends LinearOpMode {
         // Wrap Driver Station and Dashboard telemetry together
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        transfer = new TransferSubsystem(hardwareMap);
+        // Temporarily disable auto-transfer logic during PIDF tuning to isolate pure slot movements
+        TransferConfig.AUTO_TRANSFER = false;
+
+        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
+        TransferSubsystem transfer = new TransferSubsystem(hardwareMap, intake);
 
         telemetry.addLine("=== Transfer Slot PIDF Tuner ===");
         telemetry.addLine("Press PLAY to start interactive slot & PIDF tuning.");

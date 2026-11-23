@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Utility;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferConfig;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem.BallColor;
@@ -41,7 +42,8 @@ public class TransferTestOpMode extends LinearOpMode {
         // Multi-telemetry pushes logs to both Driver Station and FTC Dashboard
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        TransferSubsystem transfer = new TransferSubsystem(hardwareMap);
+        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
+        TransferSubsystem transfer = new TransferSubsystem(hardwareMap, intake);
         ElapsedTime colorUpdateTimer = new ElapsedTime();
 
         telemetry.addLine("=== Transfer Subsystem Test ===");

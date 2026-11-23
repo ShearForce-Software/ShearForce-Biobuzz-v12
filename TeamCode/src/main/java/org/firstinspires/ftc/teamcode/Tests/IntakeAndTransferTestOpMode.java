@@ -57,7 +57,7 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         IntakeSubsystem intakeSubsystem = new IntakeSubsystem(hardwareMap);
-        TransferSubsystem transferSubsystem = new TransferSubsystem(hardwareMap);
+        TransferSubsystem transferSubsystem = new TransferSubsystem(hardwareMap, intakeSubsystem);
         ElapsedTime colorUpdateTimer = new ElapsedTime();
 
         telemetry.addLine("=== Intake & Transfer Combined Test ===");

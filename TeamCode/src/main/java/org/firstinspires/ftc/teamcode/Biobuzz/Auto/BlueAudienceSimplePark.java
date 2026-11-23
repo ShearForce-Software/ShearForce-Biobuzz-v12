@@ -40,7 +40,7 @@ public class BlueAudienceSimplePark extends LinearOpMode {
         follower = Constants.create(hardwareMap);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
-        TransferSubsystem transfer = new TransferSubsystem(hardwareMap);
+        TransferSubsystem transfer = new TransferSubsystem(hardwareMap, intake);
         CameraSubsystem camera = new CameraSubsystem(hardwareMap);
         ElapsedTime matchTimer = new ElapsedTime();
 

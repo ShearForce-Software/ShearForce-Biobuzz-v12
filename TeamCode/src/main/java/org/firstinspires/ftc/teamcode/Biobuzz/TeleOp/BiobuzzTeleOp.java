@@ -77,7 +77,7 @@ public class BiobuzzTeleOp extends OpMode {
         // Instantiate Subsystems
         follower = Constants.create(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
-        transfer = new TransferSubsystem(hardwareMap);
+        transfer = new TransferSubsystem(hardwareMap, intake);
         shooter = new ShooterSubsystem(hardwareMap);
         camera = new CameraSubsystem(hardwareMap);
 
@@ -326,41 +326,6 @@ public class BiobuzzTeleOp extends OpMode {
             }
         } else if (gamepad2.circleWasPressed()) {
             if (!gamepad2.options) {
-                intake.turnOff();
-                intakeOn = false;
-            }
-        }
-
-        // if Auto Transfer Logic enabled (non-blocking) (toggle on/off by using SHARE + TRIANGLE)
-        if (TransferConfig.AUTO_TRANSFER) {
-            // if intake is turned on (bringing in new balls)
-            if (intake.getVelocity() > 0) {
-                // if transfer is not already in progress
-                if (!transfer.IsBusy()) {
-                    // if a ball is in or about to be in the bottom slot 
-                    if (transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) || transfer.isRampFrontBallPresent() || transfer.isRampBackBallPresent()) {
-                        // if intake is already full then we are controlling too many balls!!!
-                        if (transferAssumedFull) {
-                            transfer.StowBalls();
-                            // spit out any extra balls
-                            intake.reverse();
-                        } else {
-                            // if Top, Left, and Right slots already reporting full
-                            if (transfer.isSlotOccupied(TransferSubsystem.SENSOR_TOP) && transfer.isSlotOccupied(TransferSubsystem.SENSOR_LEFT) && transfer.isSlotOccupied(TransferSubsystem.SENSOR_RIGHT)) {
-                                transferAssumedFull = true;
-                            }
-                            transfer.Load1Ball();
-                        }
-                    } else if (transferAssumedFull) {
-                        transfer.StowBalls();
-                        // spit out anything else not being detected yet
-                        intake.reverse();
-                    }
-                }
-            // else if out-taking and velocity has reached at least 80% of target velocity and no more extra balls are being detected
-            } else if ((intake.getVelocity() < -intake.targetVelocityTicks * 0.8) &&
-                    !(transfer.isSlotOccupied(TransferSubsystem.SENSOR_BOTTOM_FRONT) || transfer.isRampFrontBallPresent() || transfer.isRampBackBallPresent())) {
-                // assume it is safe to turn off the intake subsystem
                 intake.turnOff();
                 intakeOn = false;
             }

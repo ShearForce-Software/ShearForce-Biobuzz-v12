@@ -40,7 +40,7 @@ public class RedTVPlan2 extends LinearOpMode {
         // Instantiate subsystems
         follower = Constants.create(hardwareMap);
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
-        TransferSubsystem transfer = new TransferSubsystem(hardwareMap);
+        TransferSubsystem transfer = new TransferSubsystem(hardwareMap, intake);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
         ElapsedTime matchTimer = new ElapsedTime();
 
