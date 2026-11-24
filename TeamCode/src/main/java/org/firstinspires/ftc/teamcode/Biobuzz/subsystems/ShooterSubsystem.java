@@ -233,16 +233,6 @@ public class ShooterSubsystem {
 
     // --- Ivy Command Generators ---
 
-    public Command firePositionCommand() {
-        return sequential(
-                instant(this::startFlywheels),
-                waitUntil(this::isAtSpeed),
-                instant(this::setPollenPosition),
-                waitMs(250),
-                instant(this::setNectarPosition)
-        );
-    }
-
     public Command startFlywheelsCommand() {
         return instant(this::startFlywheels);
     }

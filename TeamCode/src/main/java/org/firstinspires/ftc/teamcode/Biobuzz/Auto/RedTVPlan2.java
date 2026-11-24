@@ -73,7 +73,7 @@ public class RedTVPlan2 extends LinearOpMode {
                         instant(matchTimer::reset),
 
                         waitMs(8000),
-                        shooter.firePositionCommand(),
+                        transfer.shootAllBallsCommand(),
 
                         //from start position where you shoot to the flower pose
                         parallel(
@@ -84,7 +84,7 @@ public class RedTVPlan2 extends LinearOpMode {
                         //from the flower turn around and shoot what you intook from the flower
                         follow(follower, flowerToShoot2),
                         waitMs(8000),
-                        shooter.firePositionCommand(),
+                        transfer.shootAllBallsCommand(),
 
 
 

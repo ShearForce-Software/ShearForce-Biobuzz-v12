@@ -113,6 +113,10 @@ public class TransferSubsystem {
 
     private final IntakeSubsystem intake;
 
+    // Background Color Sensor Thread
+    private Thread colorSensorThread = null;
+    private volatile boolean colorSensorThreadRunning = false;
+
     public TransferSubsystem(HardwareMap hardwareMap, IntakeSubsystem intakeSubsystem) {
         intake = intakeSubsystem;
 
@@ -824,39 +828,70 @@ public class TransferSubsystem {
 
     // --- Ivy Command Generators ---
 
-    public Command rotateForwardCommand() {
-        return instant(this::rotateForward);
-    }
-
-    public Command rotateReverseCommand() {
-        return instant(this::rotateReverse);
-    }
 
     public Command stopCommand() {
         return instant(this::stop);
     }
 
-    public Command advance1SlotCommand(boolean forward) {
+
+
+    /**
+     * Ivy Command to shoot all balls by rotating 5 slots forward using closed-loop PIDF position control,
+     * with a configurable safety timeout.
+     *
+     * @param timeoutMs Maximum duration in milliseconds to wait before timing out.
+     */
+    public Command shootAllBallsCommand(long timeoutMs) {
+        ElapsedTime timer = new ElapsedTime();
         return sequential(
-                instant(() -> advance1Slot(forward)),
-                waitUntil(this::isAdvance1SlotComplete)
+                instant(() -> {
+                    timer.reset();
+                    ShootAllBalls();
+                }),
+                waitUntil(() -> !IsBusy() || timer.milliseconds() >= timeoutMs)
         );
     }
 
-    public Command advance1SlotForwardCommand() {
-        return advance1SlotCommand(true);
+    /**
+     * Ivy Command to shoot all balls with a default 3000ms (3.0 second) safety timeout.
+     */
+    public Command shootAllBallsCommand() {
+        return shootAllBallsCommand(3000);
     }
 
-    public Command advance1SlotReverseCommand() {
-        return advance1SlotCommand(false);
+    // --- Background Color Sensor Thread Control ---
+
+    /**
+     * Starts a dedicated asynchronous background thread for non-blocking I2C color sensor updates (~15 Hz).
+     */
+    public void startColorSensorThread() {
+        if (colorSensorThreadRunning) return;
+        colorSensorThreadRunning = true;
+        colorSensorThread = new Thread(() -> {
+            while (colorSensorThreadRunning && !Thread.currentThread().isInterrupted()) {
+                try {
+                    UpdateColorSensors();
+                    Thread.sleep(60);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    // Ignore transient exceptions
+                }
+            }
+        }, "TransferColorSensorBackgroundThread");
+        colorSensorThread.start();
     }
 
-    public Command transferUntilFullCommand() {
-        return sequential(
-                instant(this::rotateForward),
-                waitUntil(this::isFull),
-                instant(this::stop)
-        );
+    /**
+     * Safely stops the background color sensor thread.
+     */
+    public void stopColorSensorThread() {
+        colorSensorThreadRunning = false;
+        if (colorSensorThread != null) {
+            colorSensorThread.interrupt();
+            colorSensorThread = null;
+        }
     }
     // --- Front Gate Servo Control Methods ---
     public void openFrontGate() {

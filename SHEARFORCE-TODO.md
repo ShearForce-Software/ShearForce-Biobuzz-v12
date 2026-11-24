@@ -13,13 +13,14 @@ This file tracks the upcoming software tasks.
 - [✅] Update names of existing Auto routes to show color, plan set (1,2, or 3), and start position
 - [✅] **Test BiobuzzTeleOp for Robot Centric manual drive controls for > 4 minutes**
 - [✅] Test BiobuzzTeleOp for Field Centric manual drive controls for > 4 minutes
-- [ ] Save all autonomous routes in turtle format
-- [ ] **Create and Verify MVP parking route for all 4 positions**
-- [ ] Test and verify teleOp knows the correct alliance after autonomous
 - [✅] Add manual ability to change alliance from gamepad1
 - [✅] Add update logic to update the active Hive target info using only robot position and alliance color
-- [ ] Test and verify teleOp knows correct position and heading after autonomous
 - [✅] Add button to GamePad1 to auto turn the robot (w/ 90 deg offset for shooter) to point at the active hive
+- [ ] (Mary) Test and verify teleOp knows the correct alliance after autonomous
+- [ ] (Mary) Test and verify teleOp knows correct position and heading after autonomous
+- [ ] Verify target steering button working
+- [ ] Verify all autonomous routes saved in turtle format
+- [ ] (Amelia) **Create and Verify MVP parking route for all 4 positions**
 - [ ] Create MVP+ routes to shoot 4 balls before parking
 - [ ] Create MVP++ routes to shoot 4 balls and intake from garden or flower then shoot again and park
 - [ ] Create Full Plan 1 RED - Audience route
@@ -36,31 +37,24 @@ This file tracks the upcoming software tasks.
 - [ ] **Intake Subsystem (and De-Pollinator)**
   - [✅] Test depollinator control, determine optimum up/down values for servo
   - [✅] Verify ramp sensors working to detect presence of a ball (nectar or pollen)
-  - [ ] **Verify ramp sensors working to detect difference between Nectar versus Pollen**
-    - Not working for Red versus Yellow detection, works for BLUE 
-  - [ ] (Carlos) **Add support and logic for **NEW** intake gate servos (logic should be in a new intakeSubsystem.Update() method)**
-    - Servos are already defined in the config file as: "gateBackServo" and "gateFrontServo"
-    - if front-ramp ball detected and < 4 balls in transfer
-      - if correct color, then open front gate, close back gate
-      - else if wrong color then eject intake and close both gates
-    - else if back-ramp ball detected and < 4 balls in transfer
-      - if correct color, then open back gate, close front gate
-      - else if wrong color then eject intake and close both gates
-    - else if front-ramp ball detected OR back-ramp ball detected AND 4 balls already in transfer
-      - then eject intake, close both gates
-   - [✅] Update the de-pollinator up position to be tighter to the chassis
-   - [ ] Add motor current monitoring and Jam / Stall protection to the IntakeSubsystem.update() method to automatically stop the intake and alert the driver if a stall/jam is detected.
+  - [✅] Update the de-pollinator up position to be tighter to the chassis
+  - [ ] (Mary) **Verify ramp sensors working to detect difference between Nectar versus Pollen**
+    - Was not working for Red versus Yellow detection, works for BLUE last time tested
+  - [ ] (Carlos) **Test **NEW** intake gate servos**
+  - [ ] Add motor current monitoring and Jam / Stall protection to the IntakeSubsystem.update() method to automatically stop the intake and alert the driver if a stall/jam is detected.
+  
 - [ ] **Transfer Subsystem**
   - [✅] Update color sensor logic to not update while the transfer subsystem is running (stop false arm detects)
   - [✅] Test encoder to determine correct tick/revolution value
   - [✅] Test ability to move forward or reverse 1 hole spot
   - [✅] Test ability to detect presence of a ball (nectar or pollen) in each slot
   - [✅] Test ability to detect difference of color between Nectar or Pollen in each slot
-  - [ ] (Shrey and Gianna) **Add PIDF tuning for transfer system rotate CRServo**
-  - [ ] Test and verify ability to move **exactly** 1 slot without overshooting
   - [✅] Move auto transfer logic from BiobuzzTeleOp to TransferSubsystem.update() method so can be reused in autonomous routes
+  - [ ] (Shrey and Gianna) **Add PIDF tuning for transfer system rotate CRServo**
+  - [ ] (Shrey and Gianna) Test and verify ability to move **exactly** 1 slot without overshooting
   - [ ] Add logic to auto switch Nectar/Pollen servo to the correct position based on ball color in each slot
     - For mixed loads will need to auto shoot 1 at a time probably to allow time to switch servo positions 
+
 - [ ] **SHOOTER Subsystem**
   - [✅] **Fix Shooter Nectar/Pollen Servo in BiobuzzTeleOp**
   - [ ] Tune shooter nectar/pollen servo positions after next redesign
@@ -77,11 +71,13 @@ This file tracks the upcoming software tasks.
   - [ ] Implement flywheel jam and stall protections
     - Add velocity disparity monitoring (Math.abs(leftVel - rightVel) > THRESHOLD) and motor current monitoring (motor.getCurrent(CurrentUnit.AMPS)) in ShooterSubsystem.update() to automatically stop flywheels and alert the driver if a stall/jam is detected.
   - [ ] Add motor current monitoring and Jam / Stall protection for the turret motor and alert the driver if a stall/jam is detected.
+  
 - [ ] **Intake + Transfer Combo Testing**
   - [✅] Add ability to auto advance transfer subsystem to next slot when intake is on and ball detected in bottom spot
   - [✅] Add ability to auto turn off intake when all slots are filled
   - [ ] Test and verify wrong color Nectar never slips in
   - [ ] Test and verify never hold more than 4 game elements
+  
 - [ ] **Intake + Transfer + Shooter Combo Testing**
 
 

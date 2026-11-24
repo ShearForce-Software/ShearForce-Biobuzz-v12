@@ -7,6 +7,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
@@ -60,9 +61,7 @@ public class BiobuzzTeleOp extends OpMode {
     //private final Gamepad currentGamepad2 = new Gamepad();
     //private final Gamepad previousGamepad2 = new Gamepad();
 
-    // Timers & background thread
-    private Thread colorSensorThread = null;
-    private volatile boolean colorSensorThreadRunning = false;
+    // Timers
     private final ElapsedTime telemetryUpdateTimer = new ElapsedTime();
     private final ElapsedTime visionCorrectionTimer = new ElapsedTime();
     private final ElapsedTime hiveUpdateTimer = new ElapsedTime();
@@ -116,24 +115,10 @@ public class BiobuzzTeleOp extends OpMode {
         shooter.hoodMinPosition();
         visionHeadingCorrectionEnabled = false;
 
-        // Start dedicated asynchronous background thread for I2C color sensor updates (~15 Hz)
-        colorSensorThreadRunning = true;
-        colorSensorThread = new Thread(() -> {
-            while (colorSensorThreadRunning && !Thread.currentThread().isInterrupted()) {
-                try {
-                    if (transfer != null) {
-                        transfer.UpdateColorSensors();
-                    }
-                    Thread.sleep(60);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                } catch (Exception e) {
-                    // Ignore transient exceptions
-                }
-            }
-        }, "ColorSensorBackgroundThread");
-        colorSensorThread.start();
+        // Start dedicated background thread for I2C color sensor updates (~15 Hz)
+        if (transfer != null) {
+            transfer.startColorSensorThread();
+        }
 
         telemetryUpdateTimer.reset();
         visionCorrectionTimer.reset();
@@ -515,13 +500,12 @@ public class BiobuzzTeleOp extends OpMode {
     @Override
     public void stop() {
         // Stop background color sensor thread safely
-        colorSensorThreadRunning = false;
-        if (colorSensorThread != null) {
-            colorSensorThread.interrupt();
+        if (transfer != null) {
+            transfer.stopColorSensorThread();
+            transfer.stop();
         }
 
         if (intake != null) intake.turnOff();
-        if (transfer != null) transfer.stop();
         if (shooter != null) shooter.stopFlywheels();
         if (camera != null) camera.close();
     }

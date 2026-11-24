@@ -211,6 +211,78 @@ public class CameraSubsystem {
     }
 
     /**
+     * Checks if the active Alliance's Audience Goal AprilTag Cluster is currently visible
+     * AND verified to be in the UPRIGHT (Goal UP) position on a single camera frame.
+     *
+     * When the teeter-totter Audience Goal is DOWN, the AprilTag cluster is inverted/upside down
+     * (roll or pitch near +/-180 degrees).
+     *
+     * @return true if the Audience Goal cluster is detected AND right-side up (Goal UP).
+     */
+    public boolean isAudienceGoalUpAndUpright() {
+        if (aprilTagProcessor == null) return false;
+
+        String targetClusterName = MatchConfig.isRedAlliance() ? "RED AUDIENCE" : "BLUE AUDIENCE";
+        List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+
+        for (AprilTagDetection detection : detections) {
+            if (detection instanceof AprilTagClusterDetection) {
+                AprilTagClusterDetection cluster = (AprilTagClusterDetection) detection;
+                String clusterName = (cluster.metadata != null) ? cluster.metadata.name : "";
+
+                // Verify this is the Audience Goal cluster for the active alliance
+                if (clusterName.contains(targetClusterName) || clusterName.contains("AUDIENCE")) {
+                    if (cluster.ftcPose != null) {
+                        // Verify the tag is right-side up (roll/pitch near 0°, NOT upside-down near 180°)
+                        double rollAbs = Math.abs(cluster.ftcPose.roll);
+                        double pitchAbs = Math.abs(cluster.ftcPose.pitch);
+
+                        boolean isUpright = (rollAbs < 45.0 && pitchAbs < 45.0);
+
+                        if (isUpright) {
+                            return true; // Goal is UP and UPRIGHT!
+                        }
+                    }
+                }
+            }
+        }
+        return false; // Not visible or inverted (Goal DOWN)
+    }
+
+    /**
+     * Multi-frame resilient verification that polls camera detections over a specified window
+     * (e.g. 250ms) to ensure a single dropped frame does not produce a false negative.
+     *
+     * @param timeoutMs Maximum duration in milliseconds to poll frames.
+     * @param requiredHits Number of positive upright detections required to confirm Goal UP.
+     * @return true if the Audience Goal is verified upright across multiple frames.
+     */
+    public boolean isAudienceGoalUpAndUprightMultiFrame(long timeoutMs, int requiredHits) {
+        long startTime = System.currentTimeMillis();
+        int hits = 0;
+
+        while ((System.currentTimeMillis() - startTime) < timeoutMs && hits < requiredHits) {
+            if (isAudienceGoalUpAndUpright()) {
+                hits++;
+            }
+            try {
+                Thread.sleep(25); // Poll frames every ~25ms (~40 FPS)
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return hits >= requiredHits;
+    }
+
+    /**
+     * Default multi-frame verification polling for 250ms requiring at least 2 positive upright detections.
+     */
+    public boolean verifyAudienceGoalUpright() {
+        return isAudienceGoalUpAndUprightMultiFrame(250, 2);
+    }
+
+    /**
      * Updates the active Hive state in MatchConfig based on the robot's field Y position
      * when camera vision tracking is unavailable or disabled.
      * If the robot's Y position is greater than 72.0 inches, audienceGoalUp is set to false (Backstage/TV Goal active).

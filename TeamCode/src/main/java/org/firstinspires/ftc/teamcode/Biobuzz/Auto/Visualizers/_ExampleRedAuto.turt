@@ -6,7 +6,7 @@
     "link": "https://github.com/Mallen220/TurtleTracer"
   },
   "startPoint": {
-    "x": 33,
+    "x": 57,
     "y": 9,
     "heading": "linear",
     "locked": false,
@@ -24,7 +24,12 @@
         "startDeg": 180,
         "endDeg": 180
       },
-      "controlPoints": [],
+      "controlPoints": [
+        {
+          "x": 57,
+          "y": 12
+        }
+      ],
       "color": "#8CD6B8",
       "eventMarkers": [],
       "locked": false,
@@ -50,7 +55,8 @@
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
       "waitBeforeName": "",
-      "waitAfterName": ""
+      "waitAfterName": "",
+      "hidden": false
     },
     {
       "id": "mwfl3ath-69adm8",
@@ -60,7 +66,7 @@
         "y": 111,
         "heading": "linear",
         "startDeg": 180,
-        "endDeg": 0,
+        "endDeg": 45,
         "degrees": 90
       },
       "controlPoints": [
@@ -82,7 +88,8 @@
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
       "waitBeforeName": "",
-      "waitAfterName": ""
+      "waitAfterName": "",
+      "hidden": false
     },
     {
       "id": "mwfl43ts-3zdeq0",
@@ -91,7 +98,7 @@
         "x": 12,
         "y": 48,
         "heading": "linear",
-        "startDeg": 0,
+        "startDeg": 45,
         "endDeg": 180
       },
       "controlPoints": [
@@ -106,6 +113,10 @@
         {
           "x": 30,
           "y": 60
+        },
+        {
+          "x": 20,
+          "y": 48
         }
       ],
       "color": "#DC6885",
@@ -113,7 +124,8 @@
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
       "waitBeforeName": "",
-      "waitAfterName": ""
+      "waitAfterName": "",
+      "hidden": false
     },
     {
       "id": "mwfl6m50-acj3u7",
@@ -123,7 +135,7 @@
         "y": 111,
         "heading": "linear",
         "startDeg": 180,
-        "endDeg": 0
+        "endDeg": 45
       },
       "controlPoints": [
         {
@@ -144,7 +156,8 @@
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
       "waitBeforeName": "",
-      "waitAfterName": ""
+      "waitAfterName": "",
+      "hidden": false
     },
     {
       "id": "mwflbwoi-74tktq",
@@ -153,7 +166,7 @@
         "x": 12,
         "y": 96,
         "heading": "linear",
-        "startDeg": 0,
+        "startDeg": 45,
         "endDeg": 0
       },
       "controlPoints": [
@@ -167,7 +180,8 @@
       "waitBeforeMs": 0,
       "waitAfterMs": 0,
       "waitBeforeName": "",
-      "waitAfterName": ""
+      "waitAfterName": "",
+      "hidden": false
     }
   ],
   "sequence": [

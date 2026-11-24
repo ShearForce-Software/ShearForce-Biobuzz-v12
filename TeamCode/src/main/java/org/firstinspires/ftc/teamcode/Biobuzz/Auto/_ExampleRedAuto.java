@@ -61,13 +61,16 @@ public class _ExampleRedAuto extends LinearOpMode {
         // Query camera control bounds and apply settings
         camera.queryCameraControlBoundsAndApply();
 
+        // Start non-blocking background thread for color sensor updates
+        transfer.startColorSensorThread();
+
         // Target Poses
         Pose startPose = new Pose(33, 9, Math.toRadians(180));
         Pose gardenPose = new Pose(11.0, 11.0, Math.toRadians(180));
 
         Pose audienceShootPose = new Pose(60, 24, Math.toRadians(180));
-        Pose backstageShootPose = new Pose(36, 111, Math.toRadians(0));
-        Pose flowerPose = new Pose(10, 90, Math.toRadians(180));
+        Pose backstageShootPose = new Pose(36, 111, Math.toRadians(45));
+        Pose flowerPose = new Pose(12, 48, Math.toRadians(180));
         Pose parkPose = new Pose(10, 10, Math.toRadians(0));
 
         // Set starting pose
@@ -88,6 +91,7 @@ public class _ExampleRedAuto extends LinearOpMode {
                 , new Pose(20, 90, Math.toRadians(0))
                 , new Pose(24, 72, Math.toRadians(0))
                 , new Pose(30, 60, Math.toRadians(0))
+                , new Pose(20, 48, Math.toRadians(0))
                 , flowerPose).linear(audienceShootPose, flowerPose);
 
         Path driveToAudienceShoot2 = line(flowerPose, audienceShootPose).linear(flowerPose, audienceShootPose);
@@ -107,67 +111,61 @@ public class _ExampleRedAuto extends LinearOpMode {
                 sequential(
                         instant(matchTimer::reset),
 
-                        // 1. Shoot preloaded pollen into audience side red hive on startup
-                        shooter.firePositionCommand(),
+                        // 1. Shoot preloaded balls into audience side red hive using PIDF position control
+                        transfer.shootAllBallsCommand(),
 
-                        // 2. Drive to the red garden, turning the intake subsystem and transfer subsystem on in parallel
+                        // 2. Drive to the red garden with intake on in parallel (transfer auto-advances via PIDF in main loop)
                         parallel(
                                 follow(follower, driveToGarden),
-                                intake.turnOnCommand(),
-                                transfer.rotateForwardCommand()
+                                intake.turnOnCommand()
                         ),
 
-                        // 3. Drive to a shoot position for the audience side red hive, turning the intake subsystem off in parallel
+                        // 3. Drive to shoot position for audience side red hive, turning intake off
                         parallel(
                                 follow(follower, driveToAudienceShoot1),
-                                intake.turnOffCommand(),
-                                transfer.stopCommand()
+                                intake.turnOffCommand()
                         ),
 
-                        // 4. Use the camera to determine if the red hive is in audience UP position
-                        instant(() -> MatchConfig.audienceGoalUp = !Double.isNaN(camera.getCorrectedPedroHeading())),
+                        // 4. Multi-frame camera check to verify Audience Goal cluster is visible AND upright (Goal UP)
+                        instant(() -> MatchConfig.audienceGoalUp = camera.verifyAudienceGoalUpright()),
                         conditional(
                                 MatchConfig::isAudienceGoalUp,
-                                // IF UP: Shoot at audience hive
-                                shooter.firePositionCommand(),
-                                // ELSE: Drive to backstage side and shoot
+                                transfer.shootAllBallsCommand(),
                                 sequential(
                                         follow(follower, driveToTVShoot1),
-                                        shooter.firePositionCommand()
+                                        transfer.shootAllBallsCommand()
                                 )
                         ),
 
-                        // 5. Drive to the audience side red flower, turning on the intake in parallel
+                        // 5. Drive to audience side red flower with intake on and de-pollinator down
                         parallel(
                                 follow(follower, driveToRedAudienceFlower),
                                 intake.turnOnCommand(),
-                                transfer.rotateForwardCommand()
+                                intake.depollinatorDownCommand()
                         ),
 
-                        // 6. Intake more pollen from the flower
+                        // 6. Intake more pollen from flower
                         waitMs(1000),
 
-                        // 7. Drive to the shoot position for the audience side red hive (turning intake/transfer off in parallel)
+                        // 7. Drive to shoot position for audience side red hive (turning intake off, and raising the de-pollinator)
                         parallel(
                                 follow(follower, driveToAudienceShoot2),
                                 intake.turnOffCommand(),
-                                transfer.stopCommand()
+                                intake.depollinatorUpCommand()
                         ),
 
-                        // 8. Repeat the camera check logic to determine if shoot from audience or backstage side, then shoot
-                        instant(() -> MatchConfig.audienceGoalUp = !Double.isNaN(camera.getCorrectedPedroHeading())),
+                        // 8. Multi-frame camera check to verify Audience Goal cluster is visible AND upright (Goal UP)
+                        instant(() -> MatchConfig.audienceGoalUp = camera.verifyAudienceGoalUpright()),
                         conditional(
                                 MatchConfig::isAudienceGoalUp,
-                                // IF UP: Shoot at audience hive
-                                shooter.firePositionCommand(),
-                                // ELSE: Drive to backstage side and shoot
+                                transfer.shootAllBallsCommand(),
                                 sequential(
                                         follow(follower, driveToTVShoot2),
-                                        shooter.firePositionCommand()
+                                        transfer.shootAllBallsCommand()
                                 )
                         ),
 
-                        // 9. Drive to the parking spot and turn off all mechanisms
+                        // 9. Drive to parking spot and turn off flywheels & mechanisms
                         parallel(
                                 shooter.stopFlywheelsCommand(),
                                 intake.turnOffCommand(),
@@ -183,13 +181,18 @@ public class _ExampleRedAuto extends LinearOpMode {
         waitForStart();
         matchTimer.reset();
 
+        shooter.startFlywheels();
+        shooter.setPollenPosition();
+
         // Execution loop
         while (opModeIsActive() && !isStopRequested()) {
             follower.update();
+            transfer.update();
             Scheduler.execute();
         }
 
-        // Clean up camera on exit
+        // Clean up background thread and camera on exit
+        transfer.stopColorSensorThread();
         camera.close();
     }
 }
