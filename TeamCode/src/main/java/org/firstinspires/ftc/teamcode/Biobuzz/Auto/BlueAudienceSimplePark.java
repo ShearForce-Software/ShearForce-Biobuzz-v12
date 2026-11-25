@@ -38,10 +38,6 @@ public class BlueAudienceSimplePark extends LinearOpMode {
         MatchConfig.allianceColor = MatchConfig.AllianceColor.BLUE;
         // Instantiate subsystems
         follower = Constants.create(hardwareMap);
-        ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
-        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
-        TransferSubsystem transfer = new TransferSubsystem(hardwareMap, intake);
-        CameraSubsystem camera = new CameraSubsystem(hardwareMap);
         ElapsedTime matchTimer = new ElapsedTime();
 
         // Target Poses
@@ -62,8 +58,6 @@ public class BlueAudienceSimplePark extends LinearOpMode {
                         instant(matchTimer::reset),
 
                         follow(follower, startToPark),
-                        waitMs(2000),
-
 
 
                         // Save final pose for TeleOp

@@ -15,7 +15,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.Biobuzz.pedro.Constants;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.MatchConfig;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.Biobuzz.subsystems.TransferSubsystem;
 
 // Pedro 3 + Ivy Core Framework Imports
 // Static Ivy Command Structure Imports
@@ -32,6 +35,10 @@ public class RedAudienceSimplePark extends LinearOpMode {
         MatchConfig.allianceColor = MatchConfig.AllianceColor.RED;
         // Instantiate subsystems
         follower = Constants.create(hardwareMap);
+        ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap);
+        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap);
+        TransferSubsystem transfer = new TransferSubsystem(hardwareMap, intake);
+
 
         ElapsedTime matchTimer = new ElapsedTime();
 
@@ -51,6 +58,7 @@ public class RedAudienceSimplePark extends LinearOpMode {
         schedule(
                 sequential(
                         instant(matchTimer::reset),
+                        transfer.shootAllBallsCommand(),
 
                         follow(follower, startToPark),
 
