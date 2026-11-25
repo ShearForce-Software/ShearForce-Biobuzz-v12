@@ -252,20 +252,12 @@ public class IntakeAndTransferTestOpMode extends LinearOpMode {
             BallColor bottomColor = transferSubsystem.detectSlotColor(TransferSubsystem.Slot.BOTTOM);
             telemetry.addData("  └ Bottom Slot", String.format(Locale.US, "Present: %s | Color: %s", bottomPresent ? "YES" : "NO ", bottomColor));
 
-            boolean bbPresent = transferSubsystem.isSensorDetectingBall(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            BallColor bbColor = transferSubsystem.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            double bbDist = transferSubsystem.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            NormalizedRGBA bbRgba = transferSubsystem.getNormalizedColors(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            String bbDistStr = (bbDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bbDist);
-            telemetry.addData("      └ Bottom Back Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
-                    bbPresent ? "YES" : "NO ", bbColor, bbDistStr, bbRgba.red, bbRgba.green, bbRgba.blue));
-
             boolean bfPresent = transferSubsystem.isSensorDetectingBall(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             BallColor bfColor = transferSubsystem.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             double bfDist = transferSubsystem.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             NormalizedRGBA bfRgba = transferSubsystem.getNormalizedColors(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             String bfDistStr = (bfDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bfDist);
-            telemetry.addData("      └ Bottom Front Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
+            telemetry.addData("      └ Bottom Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
                     bfPresent ? "YES" : "NO ", bfColor, bfDistStr, bfRgba.red, bfRgba.green, bfRgba.blue));
 
             telemetry.addLine("=========================================");

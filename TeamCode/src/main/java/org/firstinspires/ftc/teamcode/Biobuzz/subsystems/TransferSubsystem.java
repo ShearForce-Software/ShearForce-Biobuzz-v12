@@ -62,15 +62,16 @@ public class TransferSubsystem {
         POSITION_PIDF      // Closed-loop PIDF positioning to exact target ticks/slots
     }
 
-    // Sensor Index Constants (0 to 4: Transfer, 5 to 6: Intake Ramp)
+    // Sensor Index Constants (0 to 3: Transfer, 4 to 5: Intake Ramp)
     public static final int SENSOR_TOP = 0;
     public static final int SENSOR_LEFT = 1;
     public static final int SENSOR_RIGHT = 2;
+    public static final int SENSOR_BOTTOM_FRONT = 3;
+    @Deprecated
     public static final int SENSOR_BOTTOM_BACK = 3;
-    public static final int SENSOR_BOTTOM_FRONT = 4;
-    public static final int SENSOR_RAMP_BACK = 5;
-    public static final int SENSOR_RAMP_FRONT = 6;
-    public static final int SENSOR_COUNT = 7;
+    public static final int SENSOR_RAMP_BACK = 4;
+    public static final int SENSOR_RAMP_FRONT = 5;
+    public static final int SENSOR_COUNT = 6;
 
     private final CRServo transferServo;
 
@@ -146,12 +147,11 @@ public class TransferSubsystem {
             sensorFailureCounts[i] = 0;
         }
 
-        // Hardware map all 7 color / distance sensors (5 transfer + 2 intake ramp)
+        // Hardware map all 6 color / distance sensors (4 transfer + 2 intake ramp)
         String[] sensorNames = {
                 TransferConfig.COLOR_SENSOR_TOP_NAME,
                 TransferConfig.COLOR_SENSOR_LEFT_NAME,
                 TransferConfig.COLOR_SENSOR_RIGHT_NAME,
-                TransferConfig.COLOR_SENSOR_BOTTOM_BACK_NAME,
                 TransferConfig.COLOR_SENSOR_BOTTOM_FRONT_NAME,
                 TransferConfig.COLOR_SENSOR_RAMP_BACK_NAME,
                 TransferConfig.COLOR_SENSOR_RAMP_FRONT_NAME
@@ -179,13 +179,9 @@ public class TransferSubsystem {
      * Call inside your OpMode loop to monitor sensors, PIDF calculations, and slot advancement.
      */
     public void update() {
-        //UpdateColorSensors();
-        updateAutoTransferLogic();
-
-        updateRamp();
-
         updateTransferPositionAndVelocity();
-
+        updateAutoTransferLogic();
+        updateRamp();
     }
     private boolean isWrongColor(BallColor color) {
         if (MatchConfig.isRedAlliance() && color == BallColor.BLUE) return true;
@@ -241,7 +237,7 @@ public class TransferSubsystem {
                 // if transfer is not already in progress
                 if (!IsBusy()) {
                     // if a ball is in the bottom slot
-                    if (isSlotOccupied(SENSOR_BOTTOM_FRONT) || isSlotOccupied(SENSOR_BOTTOM_BACK)) {
+                    if (isSlotOccupied(SENSOR_BOTTOM_FRONT)) {
                         // if intake is already full then we are controlling too many balls!!!
                         if (isFull()) {
                             StowBalls();
@@ -304,17 +300,15 @@ public class TransferSubsystem {
                 // eliminating overshoot regardless of ball load
                 double dTerm = -TransferConfig.POSITION_D * currentVelocity;
                 // Static friction feedforward offset (kF)
-                // this value is used to overcome CR Servo breakaway static friction
-                double fTerm = Math.signum(posError) * TransferConfig.POSITION_F;
+                // Zero feedforward inside deadband window (<= 25 ticks) to prevent hunting/forced movement
+                double fTerm = (Math.abs(posError) <= 25.0) ? 0.0 : Math.signum(posError) * TransferConfig.POSITION_F;
 
                 double outputPower = pTerm + iTerm + dTerm + fTerm;
                 outputPower = Range.clip(outputPower, -1.0, 1.0);
 
-                // Dual settling condition (Position error <= 25.0 ticks AND velocity <= 50.0 ticks/sec)
-                // this logic requires the target disc to be within target tolerance AND moving slowly before declaring completion
-                if (Math.abs(posError) <= 25.0 && Math.abs(currentVelocity) <= 50.0) {
+                // Dual settling condition: position error <= 25.0 ticks AND velocity <= 100.0 ticks/sec, or error <= 15.0 ticks
+                if (Math.abs(posError) <= 15.0 || (Math.abs(posError) <= 25.0 && Math.abs(currentVelocity) <= 100.0)) {
                     stop();
-                    controlState = TransferControlState.IDLE;
                 } else {
                     setPower(outputPower);
                 }
@@ -494,6 +488,11 @@ public class TransferSubsystem {
         isAdvancingSlot = false;
         controlState = TransferControlState.IDLE;
         setPower(TransferConfig.STOP_POWER);
+        // Clear cached transfer sensor detections upon stopping to prevent stale auto-transfer triggers
+        for (int i = 0; i <= SENSOR_BOTTOM_FRONT; i++) {
+            cachedBallPresent[i] = false;
+            cachedBallColor[i] = BallColor.NONE;
+        }
     }
 
     public boolean isRotating() {
@@ -736,8 +735,7 @@ public class TransferSubsystem {
             case 0: return isSensorDetectingBall(SENSOR_TOP);
             case 1: return isSensorDetectingBall(SENSOR_LEFT);
             case 2: return isSensorDetectingBall(SENSOR_RIGHT);
-            case 3: return isSensorDetectingBall(SENSOR_BOTTOM_BACK);
-            case 4: return isSensorDetectingBall(SENSOR_BOTTOM_FRONT);
+            case 3: return isSensorDetectingBall(SENSOR_BOTTOM_FRONT);
             default: return false;
         }
     }
@@ -755,14 +753,7 @@ public class TransferSubsystem {
             case 0: return detectSensorColor(SENSOR_TOP);
             case 1: return detectSensorColor(SENSOR_LEFT);
             case 2: return detectSensorColor(SENSOR_RIGHT);
-            case 3:
-                if (isSensorDetectingBall(SENSOR_BOTTOM_BACK)) {
-                    return detectSensorColor(SENSOR_BOTTOM_BACK);
-                } else if (isSensorDetectingBall(SENSOR_BOTTOM_FRONT)) {
-                    return detectSensorColor(SENSOR_BOTTOM_FRONT);
-                } else {
-                    return detectSensorColor(SENSOR_BOTTOM_BACK);
-                }
+            case 3: return detectSensorColor(SENSOR_BOTTOM_FRONT);
             default: return BallColor.NONE;
         }
     }

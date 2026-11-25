@@ -17,7 +17,6 @@ public class TransferConfig {
     public static String COLOR_SENSOR_TOP_NAME = "transferColorTop";
     public static String COLOR_SENSOR_LEFT_NAME = "transferColorLeft";
     public static String COLOR_SENSOR_RIGHT_NAME = "transferColorRight";
-    public static String COLOR_SENSOR_BOTTOM_BACK_NAME = "transferColorBottomBack";
     public static String COLOR_SENSOR_BOTTOM_FRONT_NAME = "transferColorBottomFront";
     public static String COLOR_SENSOR_RAMP_BACK_NAME = "intakeColorRampBack";
     public static String COLOR_SENSOR_RAMP_FRONT_NAME = "intakeColorRampFront";

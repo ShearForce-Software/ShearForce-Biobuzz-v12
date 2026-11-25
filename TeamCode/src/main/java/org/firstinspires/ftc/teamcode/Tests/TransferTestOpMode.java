@@ -155,22 +155,13 @@ public class TransferTestOpMode extends LinearOpMode {
             telemetry.addData("Bottom Slot (Overall)", String.format(Locale.US, "Present: %s | Color: %s",
                     bottomPresent ? "YES" : "NO ", bottomColor));
 
-            // Bottom Back Sensor
-            boolean bbPresent = transfer.isSensorDetectingBall(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            BallColor bbColor = transfer.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            double bbDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            NormalizedRGBA bbRgba = transfer.getNormalizedColors(TransferSubsystem.SENSOR_BOTTOM_BACK);
-            String bbDistStr = (bbDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bbDist);
-            telemetry.addData("  └ Bottom Back Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
-                    bbPresent ? "YES" : "NO ", bbColor, bbDistStr, bbRgba.red, bbRgba.green, bbRgba.blue));
-
-            // Bottom Front Sensor
+            // Bottom Sensor
             boolean bfPresent = transfer.isSensorDetectingBall(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             BallColor bfColor = transfer.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             double bfDist = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             NormalizedRGBA bfRgba = transfer.getNormalizedColors(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             String bfDistStr = (bfDist == Double.MAX_VALUE) ? "N/A" : String.format(Locale.US, "%.1f mm", bfDist);
-            telemetry.addData("  └ Bottom Front Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
+            telemetry.addData("  └ Bottom Sensor", String.format(Locale.US, "Present: %s | Color: %s | Dist: %s | R:%.2f G:%.2f B:%.2f",
                     bfPresent ? "YES" : "NO ", bfColor, bfDistStr, bfRgba.red, bfRgba.green, bfRgba.blue));
 
             telemetry.addLine("=== Controls ===");

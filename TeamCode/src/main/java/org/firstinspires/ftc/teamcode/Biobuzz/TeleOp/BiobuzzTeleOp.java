@@ -452,7 +452,6 @@ public class BiobuzzTeleOp extends OpMode {
             double distTop = transfer.getDistanceMm(TransferSubsystem.SENSOR_TOP);
             double distLeft = transfer.getDistanceMm(TransferSubsystem.SENSOR_LEFT);
             double distRight = transfer.getDistanceMm(TransferSubsystem.SENSOR_RIGHT);
-            double distBotBack = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_BACK);
             double distBotFront = transfer.getDistanceMm(TransferSubsystem.SENSOR_BOTTOM_FRONT);
             double distRampBack = transfer.getDistanceMm(TransferSubsystem.SENSOR_RAMP_BACK);
             double distRampFront = transfer.getDistanceMm(TransferSubsystem.SENSOR_RAMP_FRONT);
@@ -466,10 +465,7 @@ public class BiobuzzTeleOp extends OpMode {
             telemetry.addData("Right Sensor", String.format(Locale.US, "Color: %s | Dist: %s",
                     transfer.detectSensorColor(TransferSubsystem.SENSOR_RIGHT),
                     distRight == Double.MAX_VALUE ? "N/A" : String.format(Locale.US, "%.1f mm", distRight)));
-            telemetry.addData("Bot Back Sensor", String.format(Locale.US, "Color: %s | Dist: %s",
-                    transfer.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_BACK),
-                    distBotBack == Double.MAX_VALUE ? "N/A" : String.format(Locale.US, "%.1f mm", distBotBack)));
-            telemetry.addData("Bot Front Sensor", String.format(Locale.US, "Color: %s | Dist: %s",
+            telemetry.addData("Bottom Sensor", String.format(Locale.US, "Color: %s | Dist: %s",
                     transfer.detectSensorColor(TransferSubsystem.SENSOR_BOTTOM_FRONT),
                     distBotFront == Double.MAX_VALUE ? "N/A" : String.format(Locale.US, "%.1f mm", distBotFront)));
             telemetry.addData("Ramp Back Sensor", String.format(Locale.US, "Color: %s | Dist: %s",
