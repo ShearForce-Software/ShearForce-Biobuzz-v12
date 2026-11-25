@@ -122,6 +122,7 @@ public class TransferSubsystem {
 
         // Continuous Rotation Servo
         transferServo = hardwareMap.get(CRServo.class, TransferConfig.SERVO_NAME);
+        transferServo.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Position Servo for Front Gate
         frontGateServo = hardwareMap.get(Servo.class, TransferConfig.FRONT_GATE_SERVO);

@@ -23,8 +23,8 @@ public class TransferConfig {
     public static String COLOR_SENSOR_RAMP_FRONT_NAME = "intakeColorRampFront";
 
     // Servo Power Constants
-    public static double FORWARD_POWER = -1.0;
-    public static double REVERSE_POWER = 0.09;
+    public static double FORWARD_POWER = 1.0;
+    public static double REVERSE_POWER = -0.09;
     public static double STOP_POWER = 0.0;
 
     // Front Gate Servo Position Constants
@@ -39,16 +39,16 @@ public class TransferConfig {
     public static boolean ENCODER_REVERSED = true;
 
     // Velocity PIDF Gains (Shooting Mode)
-    public static double VELOCITY_P = 0.0012;
-    public static double VELOCITY_I = 0.0001;
-    public static double VELOCITY_D = 0.00005;
-    public static double VELOCITY_F = 0.00035; // 1.0 / Max_Velocity_Ticks_Per_Sec
+    public static double VELOCITY_P = 0.0;
+    public static double VELOCITY_I = 0.0;
+    public static double VELOCITY_D = 0.0;
+    public static double VELOCITY_F = 0.0; // 1.0 / Max_Velocity_Ticks_Per_Sec
 
     // Position PIDF & Predictive Deceleration Gains (Intake Mode)
-    public static double POSITION_P = 0.0025;
-    public static double POSITION_I = 0.00005;
-    public static double POSITION_D = 0.00015;
-    public static double POSITION_F = 0.04;               // Static friction feedforward offset for CR Servo
+    public static double POSITION_P = 0.000250;
+    public static double POSITION_I = 0.0;
+    public static double POSITION_D = 0.00001;
+    public static double POSITION_F = 0.0003;               // Static friction feedforward offset for CR Servo
     public static double MAX_DECEL_TICKS_PER_SEC2 = 6000.0; // Ticks/sec^2 deceleration limit
 
     // Operating Target Velocities
