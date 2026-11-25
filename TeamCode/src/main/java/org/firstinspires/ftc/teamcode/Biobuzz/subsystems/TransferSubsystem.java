@@ -186,20 +186,47 @@ public class TransferSubsystem {
         updateTransferPositionAndVelocity();
 
     }
+    private boolean isWrongColor(BallColor color) {
+        if (MatchConfig.isRedAlliance() && color == BallColor.BLUE) return true;
+        if (MatchConfig.isBlueAlliance() && color == BallColor.RED) return true;
+        return false;
+    }
+
     private void updateRamp() {
-        if (isRampFrontBallPresent() && getBallCount() < 4) {
-            openFrontGate();
-            closeBackGate();
-        } else if (isRampBackBallPresent() && getBallCount() < 4) {
-            openBackGate();
-            closeFrontGate();
-        } else if ((isRampFrontBallPresent() || isRampBackBallPresent()) && isFull()) {
+        BallColor frontColor = detectRampFrontColor();
+        BallColor backColor = detectRampBackColor();
+
+        boolean wrongColorFront = isRampFrontBallPresent() && isWrongColor(frontColor);
+        boolean wrongColorBack = isRampBackBallPresent() && isWrongColor(backColor);
+
+        // 1. REJECT: Wrong color ball detected at front or back ramp -> eject ball
+        if (wrongColorFront || wrongColorBack) {
             closeFrontGate();
             closeBackGate();
             if (intake != null) {
                 intake.reverse();
             }
-        } else {
+        }
+        // 2. ACCEPT FRONT: Valid ball at front ramp and transfer not full
+        else if (isRampFrontBallPresent() && getBallCount() < 4) {
+            openFrontGate();
+            closeBackGate();
+        }
+        // 3. ACCEPT BACK: Valid ball at back ramp and transfer not full
+        else if (isRampBackBallPresent() && getBallCount() < 4) {
+            openBackGate();
+            closeFrontGate();
+        }
+        // 4. FULL: Ball at ramp but transfer is full (4 balls) -> eject extra ball
+        else if ((isRampFrontBallPresent() || isRampBackBallPresent()) && isFull()) {
+            closeFrontGate();
+            closeBackGate();
+            if (intake != null) {
+                intake.reverse();
+            }
+        }
+        // 5. DEFAULT: keep gates closed
+        else {
             closeFrontGate();
             closeBackGate();
         }

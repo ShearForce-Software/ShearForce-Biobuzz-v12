@@ -28,10 +28,10 @@ public class TransferConfig {
     public static double STOP_POWER = 0.0;
 
     // Front Gate Servo Position Constants
-    public static double FRONT_GATE_OPEN_POS = 1.0;
-    public static double FRONT_GATE_CLOSED_POS = 0.0;
-    public static double BACK_GATE_OPEN_POS = 1.0;
-    public static double BACK_GATE_CLOSE_POS = 0.0;
+    public static double FRONT_GATE_OPEN_POS = 0.0;
+    public static double FRONT_GATE_CLOSED_POS = 1.0;
+    public static double BACK_GATE_OPEN_POS = 0.0;
+    public static double BACK_GATE_CLOSE_POS = 1.0;
 
     // REV Through Bore Encoder Constants (8192 ticks per revolution in Quadrature mode)
     public static double TICKS_PER_REV = 8192.0;
