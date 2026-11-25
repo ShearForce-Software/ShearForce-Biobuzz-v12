@@ -32,8 +32,8 @@
             <ContinuousRotationServo name="transferServo" port="1" />
             <Servo name="shooterServo"                    port="2" />
             <Servo name="shooterHood"                     port="3" />
-            <Servo name="gateFrontServo"                  port="4" />
-            <Servo name="gateBackServo"                   port="5" />
+            <Servo name="frontGateServo"                  port="4" />
+            <Servo name="backGateServo"                   port="5" />
 
 
 
