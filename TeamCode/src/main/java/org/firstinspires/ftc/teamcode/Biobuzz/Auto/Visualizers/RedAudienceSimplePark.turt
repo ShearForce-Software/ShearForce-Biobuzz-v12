@@ -1,13 +1,13 @@
 {
-  "version": "2.7.0",
+  "version": "2.7.1",
   "header": {
     "info": "Created with Turtle Tracer",
     "copyright": "Copyright 2026 Matthew Allen. Licensed under the Modified Apache License, Version 2.0.",
     "link": "https://github.com/Mallen220/TurtleTracer"
   },
   "startPoint": {
-    "x": 24,
-    "y": 9,
+    "x": 31,
+    "y": 10,
     "heading": "linear",
     "locked": false,
     "startDeg": -180,
@@ -18,8 +18,8 @@
       "id": "mwfjrfyr-wd33cx",
       "name": "startToPark",
       "endPoint": {
-        "x": 12,
-        "y": 96,
+        "x": 15,
+        "y": 98,
         "heading": "constant",
         "reverse": false,
         "degrees": 180,
